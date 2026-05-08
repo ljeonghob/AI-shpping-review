@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>백화점 고객설문 운영 대시보드</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f0e8;
+      --paper: rgba(255, 250, 244, 0.84);
+      --surface: rgba(255, 255, 255, 0.78);
+      --soft: #efe6da;
+      --soft-2: #ddd1c3;
+      --ink: #1f1916;
+      --muted: #6e645c;
+      --line: rgba(92, 75, 59, 0.12);
+      --blue: #dbe8f4;
+      --blue-strong: #c8ddf1;
+      --green: #dfebd6;
+      --green-text: #506c43;
+      --sand: #f3eadf;
+      --gold: #7c5f40;
+      --warn: #f7ebdc;
+      --warn-text: #996b3e;
+      --danger: #f5dede;
+      --danger-text: #964848;
+      --shadow: 0 24px 60px rgba(73, 52, 32, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(126, 95, 60, 0.12), transparent 22%),
+        radial-gradient(circle at bottom right, rgba(102, 121, 59, 0.12), transparent 24%),
+        linear-gradient(180deg, #eee4d8 0%, #faf6f0 48%, #f1e9de 100%);
+      color: var(--ink);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .shell {
+      width: min(1580px, calc(100% - 80px));
+      margin: 0 auto;
+      padding: 24px 0 30px;
+    }
+
+    .hero-header,
+    .section,
+    .strip,
+    .modal-card,
+    .dropzone,
+    .history-item,
+    .auth-card {
+      background: var(--paper);
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-lg);
+    }
+
+    .hero-header {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 18px;
+      padding: 24px 28px;
+      background:
+        radial-gradient(circle at top right, rgba(214, 231, 244, 0.58), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(240, 229, 214, 0.62), transparent 26%),
+        linear-gradient(135deg, rgba(255, 251, 245, 0.95) 0%, rgba(246, 238, 229, 0.92) 100%);
+    }
+
+    .hero-header::after {
+      content: "";
+      position: absolute;
+      right: -34px;
+      top: -36px;
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(219, 234, 244, 0.34) 0%, rgba(219, 234, 244, 0) 72%);
+      pointer-events: none;
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.84);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      box-shadow: 0 10px 24px rgba(73, 52, 32, 0.08);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .page-title {
+      font-size: clamp(34px, 3.6vw, 46px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      margin: 14px 0 10px;
+      max-width: 940px;
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+      max-width: 920px;
+    }
+
+    .hero-tools {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hero-status {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      min-width: 0;
+      padding: 10px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.82);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 8px 20px rgba(73, 52, 32, 0.06);
+      cursor: pointer;
+      color: #5f554d;
+      font-size: 14px;
+      font-weight: 800;
+      transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--blue-strong);
+      box-shadow: var(--shadow);
+      color: #35516d;
+    }
+
+    .tab-btn:hover,
+    .ghost-btn:hover,
+    .action-btn:hover,
+    .tiny-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .tab-panel {
+      display: none;
+      gap: 18px;
+    }
+
+    .tab-panel.active {
+      display: grid;
+    }
+
+    .analysis-grid,
+    .top-grid,
+    .dashboard-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .analysis-grid {
+      grid-template-columns: 1.1fr 0.9fr;
+      align-items: start;
+    }
+
+    .top-grid {
+      grid-template-columns: 1fr 1.05fr 1.05fr;
+    }
+
+    .dashboard-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .section {
+      padding: 0 14px 14px;
+    }
+
+    .section-title {
+      margin: 0 -14px 12px;
+      padding: 12px 14px;
+      text-align: center;
+      font-size: 18px;
+      background: linear-gradient(180deg, rgba(226, 216, 203, 0.96) 0%, rgba(210, 198, 183, 0.96) 100%);
+      border-radius: 22px 22px 0 0;
+      color: #34281f;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      border-bottom: 1px solid rgba(110, 91, 71, 0.18);
+      box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .dropzone {
+      padding: 28px;
+      text-align: center;
+      border: 2px dashed #d5c2aa;
+      background: #fcfaf7;
+    }
+
+    .dropzone h3 {
+      margin-bottom: 8px;
+      font-size: 24px;
+    }
+
+    .dropzone p {
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .dropzone-actions,
+    .action-row,
+    .table-actions,
+    .history-actions,
+    .inline-fields {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .dropzone-actions,
+    .action-row {
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .helper,
+    .file-name {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .file-name {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .action-btn,
+    .ghost-btn,
+    .tiny-btn {
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .action-btn {
+      border: none;
+      background: #33261c;
+      color: #fff;
+      padding: 11px 16px;
+      font-weight: 800;
+    }
+
+    .ghost-btn,
+    .tiny-btn {
+      border: 1px solid rgba(92, 75, 59, 0.18);
+      background: rgba(255, 255, 255, 0.78);
+      color: var(--ink);
+    }
+
+    .ghost-btn {
+      padding: 10px 16px;
+      font-weight: 700;
+    }
+
+    .tiny-btn {
+      padding: 9px 14px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .tiny-btn.danger {
+      background: var(--danger);
+      color: var(--danger-text);
+    }
+
+    .status-grid,
+    .settings-grid,
+    .strip {
+      display: grid;
+      gap: 12px;
+    }
+
+    .status-grid,
+    .settings-grid {
+      grid-template-columns: repeat(3, 1fr);
+      margin-top: 18px;
+    }
+
+    .strip {
+      grid-template-columns: 1.25fr repeat(4, 1fr);
+      align-items: center;
+      padding: 18px 16px;
+      margin-bottom: 16px;
+    }
+
+    .metric-card,
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(255,255,255,0.82);
+    }
+
+    .metric strong,
+    .metric-card strong {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .metric span,
+    .metric-card span {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .date-box {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field span {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .field input,
+    .table-actions select,
+    .inline-fields input {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.78);
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field-helper {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .api-key-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .api-key-row input {
+      flex: 1 1 320px;
+    }
+
+    .prompt-box {
+      margin-top: 20px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: #fcfaf7;
+      padding: 18px;
+    }
+
+    .prompt-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .prompt-head h3 {
+      font-size: 18px;
+    }
+
+    .prompt-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--green);
+      color: var(--green-text);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .prompt-box textarea {
+      width: 100%;
+      min-height: 220px;
+      border: 1px solid #d8c8b4;
+      border-radius: 16px;
+      background: #fff;
+      padding: 14px;
+      resize: vertical;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+
+    .history-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #fcfaf7;
+    }
+
+    .history-meta {
+      display: grid;
+      gap: 6px;
+    }
+
+    .history-title {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .history-sub {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .badge.ready {
+      background: var(--green);
+      color: var(--green-text);
+    }
+
+    .badge.waiting {
+      background: var(--warn);
+      color: var(--warn-text);
+    }
+
+    .badge.danger {
+      background: var(--danger);
+      color: var(--danger-text);
+    }
+
+    .summary-table,
+    .distribution-table,
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+
+    .summary-table td,
+    .distribution-table th,
+    .distribution-table td,
+    .data-table th,
+    .data-table td {
+      border: 1px solid rgba(111, 97, 82, 0.22);
+      padding: 10px 11px;
+      font-size: 14px;
+      vertical-align: middle;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .distribution-card {
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(111, 97, 82, 0.18);
+      box-shadow: 0 14px 28px rgba(61, 44, 28, 0.08);
+    }
+
+    .summary-table .label-cell {
+      width: 155px;
+      text-align: center;
+      background: rgba(219, 209, 196, 0.52);
+      font-weight: 700;
+    }
+
+    .distribution-table th,
+    .data-table th {
+      background: rgba(219, 209, 196, 0.52);
+      font-weight: 700;
+      text-align: center;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .distribution-table td,
+    .data-table td {
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .data-table td.left {
+      text-align: left;
+    }
+
+    .col-rank,
+    .col-group,
+    .col-score,
+    .col-action {
+      width: 1%;
+      white-space: nowrap;
+    }
+
+    .col-store,
+    .col-id {
+      white-space: nowrap;
+    }
+
+    .col-reason {
+      min-width: 180px;
+      white-space: normal;
+    }
+
+    .col-response {
+      min-width: 360px;
+      white-space: normal;
+    }
+
+    .criteria-box {
+      display: grid;
+      gap: 0;
+    }
+
+    .criteria-row {
+      display: grid;
+      grid-template-columns: 154px 1fr;
+    }
+
+    .criteria-side,
+    .criteria-main {
+      min-height: 96px;
+      border: 1px solid rgba(111, 97, 82, 0.22);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .criteria-side {
+      background: rgba(219, 209, 196, 0.46);
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .criteria-main {
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .table-actions {
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .left-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .group-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .group-pill.final {
+      background: var(--sand);
+      color: var(--gold);
+    }
+
+    .group-pill.reserve {
+      background: var(--green);
+      color: var(--green-text);
+    }
+
+    .response-preview {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-width: 100%;
+      line-height: 1.55;
+      text-align: left;
+      white-space: normal;
+    }
+
+    .distribution-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .distribution-pager {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .empty-state {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(38, 28, 20, 0.34);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(31, 25, 22, 0.38);
+      backdrop-filter: blur(8px);
+    }
+
+    .auth-gate.open {
+      display: flex;
+    }
+
+    .auth-card {
+      width: min(520px, 100%);
+      padding: 24px;
+    }
+
+    .auth-card h2 {
+      font-size: 28px;
+      letter-spacing: -0.04em;
+      margin-bottom: 8px;
+    }
+
+    .auth-card p {
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .auth-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .captcha-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid var(--line);
+    }
+
+    .captcha-code {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      color: var(--gold);
+    }
+
+    .auth-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .auth-error {
+      min-height: 22px;
+      color: var(--danger-text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .modal-card {
+      width: min(920px, 100%);
+      max-height: 84vh;
+      overflow: auto;
+      padding: 18px;
+      border-radius: 24px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-body {
+      display: grid;
+      gap: 12px;
+    }
+
+    .detail-box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 14px;
+    }
+
+    .detail-box strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .detail-box p {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .detail-score-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .detail-score {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .detail-score strong {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .detail-score span {
+      display: block;
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    @media (max-width: 1480px) {
+      .analysis-grid,
+      .top-grid,
+      .dashboard-grid,
+      .strip {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 960px) {
+      .shell {
+        width: min(100% - 20px, 1580px);
+      }
+
+      .status-grid,
+      .settings-grid,
+      .detail-score-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .criteria-row {
+        grid-template-columns: 1fr;
+      }
+
+      .history-item,
+      .table-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero-header">
+      <span class="hero-kicker">AI REVIEW DASHBOARD</span>
+      <h1 class="page-title">백화점 고객설문 분석 및 우수리뷰 선정</h1>
+      <p class="page-subtitle">업로드된 설문 데이터를 기준으로 제외 응답을 먼저 정리하고, 우수리뷰 후보를 한 화면에서 검토할 수 있도록 정리한 운영 페이지입니다.</p>
+      <div class="hero-tools">
+        <span class="hero-status" id="loginStatusText">공용 인증코드 로그인 필요</span>
+        <button class="ghost-btn" id="logoutBtn" type="button" hidden>로그아웃</button>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" type="button" data-tab="analysis">설문 분석 화면</button>
+        <button class="tab-btn" type="button" data-tab="selection">우수리뷰 선정</button>
+      </div>
+    </section>
+
+    <section class="tab-panel active" id="tab-analysis">
+      <div class="analysis-grid">
+        <section class="section" id="uploadSection">
+          <h2 class="section-title">1. 업로드</h2>
+          <p class="section-subtitle">기본 정보와 주관식 의견만 포함된 CSV 파일을 업로드하면 월별 분석 배치를 생성합니다.</p>
+          <div class="dropzone" id="dropzone">
+            <input id="fileInput" type="file" accept=".csv" hidden>
+            <h3>설문 응답 파일 업로드</h3>
+            <p>CSV 형식 파일을 선택하면 응답 수와 처리 상태를 바로 확인할 수 있습니다. 엑셀 파일은 CSV로 저장 후 업로드해 주세요.</p>
+            <div class="dropzone-actions">
+              <button class="action-btn" id="fileSelectBtn" type="button">파일 선택</button>
+              <button class="ghost-btn" id="sampleDownloadBtn" type="button">샘플 CSV 다운로드</button>
+            </div>
+            <div class="file-name" id="fileNameText">선택된 파일 없음</div>
+            <p class="helper" id="uploadMessage">필수 컬럼: `survey_no`, `customer_id`, `store_name`, `survey_date`, `comment_text`</p>
+          </div>
+
+          <div class="status-grid">
+            <article class="metric-card">
+              <strong>업로드 파일</strong>
+              <span id="uploadFileCount">0건</span>
+            </article>
+            <article class="metric-card">
+              <strong>응답 수</strong>
+              <span id="uploadRowCount">0건</span>
+            </article>
+            <article class="metric-card">
+              <strong>처리 상태</strong>
+              <span id="uploadStatus">대기</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2 class="section-title">2. 분석 설정</h2>
+          <p class="section-subtitle">선정 인원과 프롬프트 버전을 확인한 뒤 분석을 시작합니다.</p>
+
+          <div class="settings-grid">
+            <label class="field">
+              <span>최종 선정 수</span>
+              <input id="finalCountInput" type="number" min="1" max="100" value="30">
+            </label>
+            <label class="field">
+              <span>후보 수</span>
+              <input id="reserveCountInput" type="number" min="1" max="100" value="30">
+            </label>
+            <label class="field">
+              <span>프롬프트 버전명</span>
+              <input id="promptVersionInput" type="text" value="review-score-v1">
+            </label>
+            <label class="field full">
+              <span>OpenAI API 키</span>
+              <div class="api-key-row">
+                <input id="apiKeyInput" type="password" placeholder="sk-... 형식의 OpenAI API 키를 입력하세요">
+                <button class="ghost-btn" id="clearApiKeyBtn" type="button">키 지우기</button>
+              </div>
+              <div class="field-helper">입력한 API 키는 이 브라우저 세션에만 저장되며, 분석 요청 시에만 사용됩니다.</div>
+            </label>
+          </div>
+
+          <div class="prompt-box">
+            <div class="prompt-head">
+              <h3>적용 중인 선정 기준</h3>
+              <span class="prompt-badge">고정 기준</span>
+            </div>
+            <textarea id="promptText" readonly>중요 원칙:
+- 반드시 comment_text만 기반으로 판단
+- customer_id, store_name, survey_date는 점수 판단에 사용하지 않음
+- 개인정보 또는 개인 식별 가능 정보는 보수적으로 제외
+
+사전 제외 기준:
+- 전화번호 포함
+- 이메일/계정 식별자 포함
+- 실명 노출
+- 개인 식별 가능 정보 포함
+- 욕설·비방·혐오 표현
+- 20자 미만 단답형
+- 의미 없는 반복 응답
+
+점수화 기준:
+- 구체성 0~40
+- 활용성 0~40
+- 진정성 0~20
+
+최종 정렬:
+1. ai_total_score 내림차순
+2. ai_score_specificity 내림차순
+3. ai_score_usability 내림차순
+4. ai_score_authenticity 내림차순
+5. survey_date 오름차순</textarea>
+          </div>
+
+          <div class="action-row">
+            <button class="action-btn" id="processBtn" type="button">분석 시작</button>
+            <button class="ghost-btn" id="resetCurrentBtn" type="button">현재 업로드 초기화</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="section">
+        <h2 class="section-title">3. 처리 이력</h2>
+        <p class="section-subtitle">최근 분석 배치를 저장해두고 다시 결과 화면으로 열어볼 수 있습니다.</p>
+        <div class="action-row" style="justify-content:flex-end; margin: 0 0 12px;">
+          <button class="tiny-btn danger" id="clearHistoryBtn" type="button">이력 전체 삭제</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </section>
+    </section>
+
+    <section class="tab-panel" id="tab-selection">
+      <div class="strip">
+        <div class="metric date-box">
+          <strong>응답 기간</strong>
+          <span id="metricDateRange">-</span>
+          <div class="inline-fields">
+            <input id="startDateInput" type="date">
+            <input id="endDateInput" type="date">
+            <button class="tiny-btn" id="applyDateFilterBtn" type="button">기간 적용</button>
+          </div>
+        </div>
+        <div class="metric">
+          <strong>전체 응답</strong>
+          <span id="metricTotal">-</span>
+        </div>
+        <div class="metric">
+          <strong>제외 응답</strong>
+          <span id="metricExcluded">-</span>
+        </div>
+        <div class="metric">
+          <strong>평균 선정 점수</strong>
+          <span id="metricAverageScore">-</span>
+        </div>
+        <div class="metric">
+          <strong>평균 응답 길이</strong>
+          <span id="metricAverageLength">-</span>
+        </div>
+      </div>
+
+      <section class="section">
+        <h2 class="section-title">결과 대시보드</h2>
+        <p class="section-subtitle" id="dashboardSubtitle">아직 분석된 배치가 없습니다.</p>
+
+        <div class="top-grid">
+          <section>
+            <h3 class="section-title" style="margin-bottom: 0;">우수응답 요약 리포트</h3>
+            <div id="summaryGrid"></div>
+          </section>
+
+          <section>
+            <h3 class="section-title" id="allStoresTitle" style="margin-bottom: 0;">전체 응답 점포 분포</h3>
+            <div id="allStoreDistribution"></div>
+          </section>
+
+          <section>
+            <h3 class="section-title" id="selectedStoresTitle" style="margin-bottom: 0;">우수 응답 점포 분포</h3>
+            <div id="selectedStoreDistribution"></div>
+          </section>
+        </div>
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="section">
+          <h2 class="section-title">선정 기준</h2>
+          <div class="criteria-box" id="criteriaBox"></div>
+        </section>
+
+        <section class="section" id="dashboardSection">
+          <h2 class="section-title" id="candidateTitle">리워드 후보</h2>
+          <div class="table-actions">
+            <div class="left-actions">
+              <button class="ghost-btn" id="downloadCandidatesBtn" type="button">전체 다운로드</button>
+              <select id="storeFilterSelect">
+                <option value="all">전체 점포</option>
+              </select>
+            </div>
+            <select id="sortFilterSelect">
+              <option value="score">총점순</option>
+              <option value="store">점포 ㄱㄴㄷ순</option>
+            </select>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>순위</th>
+                  <th>구분</th>
+                  <th>점포명</th>
+                  <th>고객 식별번호</th>
+                  <th>총점</th>
+                  <th>선정 이유</th>
+                  <th>응답</th>
+                  <th>상세보기</th>
+                </tr>
+              </thead>
+              <tbody id="candidateTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="auth-gate open" id="authGate" aria-hidden="false">
+    <div class="auth-card">
+      <h2>팀 전용 로그인</h2>
+      <p>외부 접근을 줄이기 위해 공용 인증코드와 화면에 표시된 난수번호를 함께 입력해야 합니다.</p>
+      <div class="auth-grid">
+        <label class="field">
+          <span>공용 인증코드</span>
+          <input id="accessCodeInput" type="password" placeholder="팀에서 공유한 인증코드 입력">
+        </label>
+        <div class="captcha-box">
+          <div>
+            <div class="field-helper" style="margin-bottom:6px;">화면에 보이는 난수번호</div>
+            <div class="captcha-code" id="captchaCodeText">000000</div>
+          </div>
+          <button class="tiny-btn" id="refreshCaptchaBtn" type="button">새 번호</button>
+        </div>
+        <label class="field">
+          <span>난수번호 입력</span>
+          <input id="captchaInput" type="text" inputmode="numeric" placeholder="위 숫자를 그대로 입력">
+        </label>
+      </div>
+      <div class="auth-actions">
+        <div class="auth-error" id="authErrorText"></div>
+        <button class="action-btn" id="loginSubmitBtn" type="button">로그인</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="detailModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>응답 상세보기</h3>
+        <button class="tiny-btn" id="closeDetailModalBtn" type="button">닫기</button>
+      </div>
+      <div class="modal-body" id="detailModalBody"></div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+  <script>
+    (function () {
+      const summaryOriginalRender = window.renderSummary;
+      if (typeof summaryOriginalRender === "function") {
+        window.renderSummary = function (summary) {
+          const rows = [
+            ["자주 등장한 이슈", summary.frequentIssuesText || "분석할 카테고리 데이터가 아직 충분하지 않습니다."],
+            ["긍정 포인트", summary.positiveText || "뚜렷한 긍정 포인트가 아직 많지 않습니다."],
+            ["부정 포인트", summary.negativeText || "뚜렷한 부정 포인트가 아직 많지 않습니다."]
+          ];
+          document.getElementById("summaryGrid").innerHTML = '<table class="summary-table"><tbody>' + rows.map(function (row) {
+            return '<tr><td class="label-cell">' + row[0] + '</td><td>' + row[1] + '</td></tr>';
+          }).join("") + '</tbody></table>';
+        };
+        if (typeof window.renderDashboard === "function") {
+          window.renderDashboard();
+        }
+      }
+
+      function setActiveTab(tab) {
+        document.querySelectorAll(".tab-btn").forEach(function (button) {
+          button.classList.toggle("active", button.dataset.tab === tab);
+        });
+        document.getElementById("tab-analysis").classList.toggle("active", tab === "analysis");
+        document.getElementById("tab-selection").classList.toggle("active", tab === "selection");
+      }
+
+      document.querySelectorAll(".tab-btn").forEach(function (button) {
+        button.addEventListener("click", function () {
+          setActiveTab(button.dataset.tab);
+        });
+      });
+
+      document.getElementById("historyList").addEventListener("click", function (event) {
+        const openButton = event.target.closest('button[data-action="open"]');
+        if (!openButton) return;
+        setTimeout(function () {
+          setActiveTab("selection");
+        }, 0);
+      });
+    }());
+  </script>
+</body>
+</html>
