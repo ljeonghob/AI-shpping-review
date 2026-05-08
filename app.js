@@ -29,6 +29,8 @@ const COLUMN_ALIASES = {
   survey_date: ["survey_date", "\uCC38\uC5EC\uC77C\uC790", "\uCC38\uC5EC\uC77C", "\uC124\uBB38\uCC38\uC5EC\uC77C\uC790", "\uC124\uBB38\uC77C\uC790", "\uC791\uC131\uC77C\uC790"],
   comment_text: [
     "comment_text",
+    "\uBB38\uD56D5",
+    "\uBB38\uD56D 5",
     "\uC8FC\uAD00\uC2DD",
     "\uC8FC\uAD00\uC2DD\uC758\uACAC",
     "\uC8FC\uAD00\uC2DD \uC751\uB2F5",
@@ -318,6 +320,34 @@ function parseCsv(text) {
     });
     return record;
   });
+}
+
+function parseWorkbook(arrayBuffer) {
+  if (typeof XLSX === "undefined") {
+    throw new Error("엑셀 파일 처리를 위한 라이브러리를 찾을 수 없습니다.");
+  }
+
+  const workbook = XLSX.read(arrayBuffer, { type: "array" });
+  const mergedRows = [];
+
+  workbook.SheetNames.forEach((sheetName) => {
+    const sheet = workbook.Sheets[sheetName];
+    if (!sheet) return;
+
+    const rows = XLSX.utils.sheet_to_json(sheet, {
+      defval: "",
+      raw: false
+    });
+
+    rows.forEach((row) => {
+      mergedRows.push({
+        ...row,
+        __sheet_name: sheetName
+      });
+    });
+  });
+
+  return mergedRows;
 }
 
 function findColumnName(record, aliases) {
@@ -1075,10 +1105,14 @@ function handleFileSelection(file) {
   setUploadStatus(1, 0, "\uAC80\uC99D\uC911", "\uD30C\uC77C\uC744 \uC77D\uACE0 \uC5C5\uB85C\uB4DC \uC591\uC2DD\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4.");
   document.getElementById("fileNameText").textContent = file.name;
 
+  const lowerName = file.name.toLowerCase();
+  const isExcelFile = lowerName.endsWith(".xlsx") || lowerName.endsWith(".xls");
+
   reader.onload = () => {
     try {
-      const text = String(reader.result || "");
-      const parsedRows = parseCsv(text);
+      const parsedRows = isExcelFile
+        ? parseWorkbook(reader.result)
+        : parseCsv(String(reader.result || ""));
       const rows = normalizeRows(parsedRows);
       const validation = validateColumns(rows);
       if (!validation.ok) {
@@ -1091,9 +1125,14 @@ function handleFileSelection(file) {
       setUploadStatus(1, rows.length, "\uB300\uAE30", validation.message);
     } catch (error) {
       state.pendingUpload = null;
-      setUploadStatus(1, 0, "\uC624\uB958", "\uD30C\uC77C \uCC98\uB9AC \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
+      setUploadStatus(1, 0, "\uC624\uB958", error?.message || "\uD30C\uC77C \uCC98\uB9AC \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
     }
   };
+
+  if (isExcelFile) {
+    reader.readAsArrayBuffer(file);
+    return;
+  }
 
   reader.readAsText(file, "utf-8");
 }
