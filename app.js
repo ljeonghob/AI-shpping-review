@@ -1,4 +1,4 @@
-﻿const STORAGE_KEY = "survey-dashboard-history-v1";
+const STORAGE_KEY = "survey-dashboard-history-v1";
 const ACCESS_SESSION_KEY = "survey-dashboard-auth-v1";
 const API_KEY_SESSION_KEY = "survey-dashboard-api-key-v1";
 const SHARED_ACCESS_CODE = "LOTTE-REVIEW-2026";
@@ -45,48 +45,48 @@ const COLUMN_ALIASES = {
 };
 
 const STOPWORDS = new Set([
-  "洹몃━怨?, "?섏?留?, "?ㅻ쭔", "?뺣쭚", "議곌툑", "留롮씠", "?덈Т", "洹몃깷", "?꾩껜??, "?꾩껜?곸쑝濡?,
-  "?덉뒿?덈떎", "醫뗭뒿?덈떎", "醫뗭븯?댁슂", "?꾩돩?좎뒿?덈떎", "?덉뒿?덈떎", "?덉뒿?덈떎留?, "?덉뿀?댁슂", "媛숈뒿?덈떎",
-  "?뚮Ц??, "怨좉컼", "吏곸썝", "留ㅼ옣", "?먰룷", "諛깊솕??, "?묐?", "?ㅻ챸", "?덈궡", "援щℓ", "?쇳븨"
+  "그리고", "하지만", "다만", "정말", "조금", "많이", "너무", "그냥", "전체적", "전체적으로",
+  "있습니다", "좋습니다", "좋았어요", "아쉬웠습니다", "했습니다", "했습니다만", "있었어요", "같습니다",
+  "때문에", "고객", "직원", "매장", "점포", "백화점", "응대", "설명", "안내", "구매", "쇼핑"
 ]);
 
 const DETAIL_KEYWORDS = [
-  "二쇱감", "?섎━踰좎씠??, "?낃뎄", "?덈궡?곗뒪??, "?앺뭹愿", "臾명솕?쇳꽣", "?됱궗??, "媛??, "?붿옣??,
-  "?앸떦媛", "怨꾩궛?", "寃곗젣", "?숈꽑", "?섏꽑", "諛곗넚", "?쇱슫吏", "?붿옣??, "?섏쑀??, "?좊え李?,
-  "?ш퀬", "?덉빟", "?쎌뾽", "?湲?, "?쒖???, "?ㅼ삤?ㅽ겕", "?곷떞", "?덉젅", "?뺤궛"
+  "주차", "엘리베이터", "입구", "안내데스크", "식품관", "문화센터", "행사장", "가전", "화장품",
+  "식당가", "계산대", "결제", "동선", "수선", "배송", "라운지", "화장실", "수유실", "유모차",
+  "재고", "예약", "픽업", "대기", "표지판", "키오스크", "상담", "품절", "정산"
 ];
 
 const USABILITY_KEYWORDS = [
-  "醫뗪쿋?듬땲??, "?덉쑝硫?, "?꾩슂", "媛쒖꽑", "遺꾨━", "異붽?", "?쒖떆", "?뺥솗", "?덈궡臾?, "?숈꽑",
-  "?덉긽", "?ㅼ떆媛?, "?꾩슜", "?붿빟", "?뺣━", "?ш쾶", "?쎄쾶", "鍮좊Ⅴ寃?, "?⑥쑉", "蹂댁씠硫?
+  "좋겠습니다", "있으면", "필요", "개선", "분리", "추가", "표시", "정확", "안내문", "동선",
+  "예상", "실시간", "전용", "요약", "정리", "크게", "쉽게", "빠르게", "효율", "보이면"
 ];
 
 const POSITIVE_KEYWORDS = [
-  "移쒖젅", "?꾩?", "?덉떖", "?좊ː", "醫뗭븯", "留뚯”", "?뺥솗", "遺?쒕읇", "?명뻽", "瑗쇨세", "?몄떖"
+  "친절", "도움", "안심", "신뢰", "좋았", "만족", "정확", "부드럽", "편했", "꼼꼼", "세심"
 ];
 
 const NEGATIVE_KEYWORDS = [
-  "?꾩돩", "遺덊렪", "?쇱옟", "?룰컝", "遺議?, "吏??, "湲몄뿀", "?ㅻ옒", "臾몄젣", "理쒖븙", "吏쒖쬆"
+  "아쉬", "불편", "혼잡", "헷갈", "부족", "지연", "길었", "오래", "문제", "최악", "짜증"
 ];
 
-const PROFANITY_KEYWORDS = ["理쒖븙", "吏쒖쬆", "媛쒗뙋", "??, "?뺥렪??, "蹂꾨줈?덉슂", "留앺뻽"];
+const PROFANITY_KEYWORDS = ["최악", "짜증", "개판", "욕", "형편없", "별로예요", "망했"];
 
 const CATEGORY_RULES = [
   {
-    label: "二쇱감/?묎렐",
-    keywords: ["二쇱감", "二쇱감??, "?낃뎄", "?뺤궛", "?섎━踰좎씠??, "?좊え李?, "?숈꽑", "湲몄갼湲?]
+    label: "주차/접근",
+    keywords: ["주차", "주차장", "입구", "정산", "엘리베이터", "유모차", "동선", "길찾기"]
   },
   {
-    label: "留ㅼ옣 ?섍꼍",
-    keywords: ["?붿옣??, "?섏쑀??, "?덈궡??, "?쒖???, "?몄쓽?쒖꽕", "泥?껐", "苡뚯쟻", "?섍꼍"]
+    label: "매장 환경",
+    keywords: ["화장실", "수유실", "안내도", "표지판", "편의시설", "청결", "쾌적", "환경"]
   },
   {
-    label: "釉뚮옖???곹뭹",
-    keywords: ["釉뚮옖??, "?곹뭹", "?덉젅", "吏꾩뿴", "媛寃⑺몴", "?ш퀬", "?꾨줈紐⑥뀡", "援ъ깋", "?됱궗"]
+    label: "브랜드/상품",
+    keywords: ["브랜드", "상품", "품절", "진열", "가격표", "재고", "프로모션", "구색", "행사"]
   },
   {
-    label: "吏곸썝 ?쒕퉬??,
-    keywords: ["吏곸썝", "?곷떞", "?묐?", "移쒖젅", "?덈궡?곗뒪??, "?꾨Ц??, "?띾룄", "?ㅻ챸", "?묐???]
+    label: "직원 서비스",
+    keywords: ["직원", "상담", "응대", "친절", "안내데스크", "전문성", "속도", "설명", "응대해"]
   }
 ];
 
@@ -214,7 +214,7 @@ function updateAuthUI() {
     logoutBtn.hidden = !authed;
   }
   if (statusText) {
-    statusText.textContent = authed ? "? ?몄쬆 ?꾨즺" : "怨듭슜 ?몄쬆肄붾뱶 濡쒓렇???꾩슂";
+    statusText.textContent = authed ? "팀 인증 완료" : "공용 인증코드 로그인 필요";
   }
 }
 
@@ -224,13 +224,13 @@ function attemptLogin() {
   const errorText = document.getElementById("authErrorText");
 
   if (accessCode !== SHARED_ACCESS_CODE) {
-    if (errorText) errorText.textContent = "怨듭슜 ?몄쬆肄붾뱶媛 ?쇱튂?섏? ?딆뒿?덈떎.";
+    if (errorText) errorText.textContent = "공용 인증코드가 일치하지 않습니다.";
     generateCaptchaValue();
     return;
   }
 
   if (captchaInput !== state.captchaValue) {
-    if (errorText) errorText.textContent = "?쒖닔踰덊샇媛 ?쇱튂?섏? ?딆뒿?덈떎.";
+    if (errorText) errorText.textContent = "난수번호가 일치하지 않습니다.";
     generateCaptchaValue();
     return;
   }
@@ -326,16 +326,20 @@ function parseWorkbook(arrayBuffer) {
   if (typeof XLSX === "undefined") {
     throw new Error("?? ?? ??? ?? ?????? ?? ? ????.");
   }
+
   const workbook = XLSX.read(arrayBuffer, { type: "array" });
   const mergedRows = [];
+
   workbook.SheetNames.forEach((sheetName) => {
     const sheet = workbook.Sheets[sheetName];
     if (!sheet) return;
+
     const matrix = XLSX.utils.sheet_to_json(sheet, {
       header: 1,
       defval: "",
       raw: false
     });
+
     const headerCandidates = [
       ...COLUMN_ALIASES.survey_no,
       ...COLUMN_ALIASES.customer_id,
@@ -343,6 +347,7 @@ function parseWorkbook(arrayBuffer) {
       ...COLUMN_ALIASES.survey_date,
       ...COLUMN_ALIASES.comment_text
     ];
+
     const headerRowIndex = matrix.findIndex((row, index) => {
       if (index > 20 || !Array.isArray(row)) return false;
       const normalized = row.map((cell) => String(cell || "").trim()).filter(Boolean);
@@ -350,7 +355,9 @@ function parseWorkbook(arrayBuffer) {
       const matchedCount = normalized.filter((cell) => headerCandidates.includes(cell)).length;
       return matchedCount >= 2 && normalized.some((cell) => COLUMN_ALIASES.survey_no.includes(cell));
     });
+
     if (headerRowIndex === -1) return;
+
     const headers = (matrix[headerRowIndex] || []).map((cell) => String(cell || "").trim());
     const rows = matrix
       .slice(headerRowIndex + 1)
@@ -363,6 +370,7 @@ function parseWorkbook(arrayBuffer) {
         return record;
       })
       .filter((row) => Object.values(row).some((value) => String(value || "").trim() !== ""));
+
     rows.forEach((row) => {
       mergedRows.push({
         ...row,
@@ -370,6 +378,7 @@ function parseWorkbook(arrayBuffer) {
       });
     });
   });
+
   return mergedRows;
 }
 
@@ -386,10 +395,12 @@ function normalizeRows(rows) {
     const commentKey = findColumnName(row, COLUMN_ALIASES.comment_text);
     const storeNameKey = ["store_name", "\uCC38\uC5EC\uC9C0\uC810", "\uC810\uD3EC\uBA85", "\uB9E4\uC7A5\uBA85", "store"]
       .find((key) => Object.keys(row).includes(key)) || "";
+
     const surveyNo = String(row[surveyNoKey] || "").trim();
     const fallbackCustomerId = surveyNo ? ("SURVEY-" + surveyNo) : ("ROW-" + (index + 1));
     const customerId = String(row[customerIdKey] || fallbackCustomerId).trim();
     const normalizedStoreName = String(row[storeNameKey] || row.__sheet_name || "").trim();
+
     return {
       ...row,
       survey_no: surveyNo,
@@ -429,26 +440,26 @@ function hasMeaninglessRepeat(text) {
 
 function getExclusionReason(comment) {
   const normalized = comment.replace(/\s+/g, " ").trim();
-  if (!normalized) return "?섎? ?녿뒗 諛섎났 ?묐떟";
+  if (!normalized) return "의미 없는 반복 응답";
 
   if (/(01[016789])[- ]?\d{3,4}[- ]?\d{4}/.test(normalized) || /\d{2,4}[- ]?\d{3,4}[- ]?\d{4}/.test(normalized)) {
-    return "?꾪솕踰덊샇 ?ы븿";
+    return "전화번호 포함";
   }
 
-  if (/(?대쫫?|????대떦?먮뒗)\s*[媛-??{2,4}/.test(normalized) || /[媛-??{2,4}\s*(????/.test(normalized)) {
-    return "?ㅻ챸 ?몄텧";
+  if (/(이름은|저는|담당자는)\s*[가-힣]{2,4}/.test(normalized) || /[가-힣]{2,4}\s*(님|씨)/.test(normalized)) {
+    return "실명 노출";
   }
 
   if (PROFANITY_KEYWORDS.some((keyword) => normalized.includes(keyword))) {
-    return "?뺤꽕/鍮꾨갑/?먯삤 ?쒗쁽";
+    return "욕설/비방/혐오 표현";
   }
 
   if (normalized.length < 20) {
-    return "20??誘몃쭔 ?⑤떟??;
+    return "20자 미만 단답형";
   }
 
   if (hasMeaninglessRepeat(normalized)) {
-    return "?섎? ?녿뒗 諛섎났 ?묐떟";
+    return "의미 없는 반복 응답";
   }
 
   return "";
@@ -460,14 +471,14 @@ function clamp(value, min, max) {
 
 function scoreComment(comment) {
   const normalized = comment.replace(/\s+/g, " ").trim();
-  const sentences = normalized.split(/[.!?]|?덈떎\.|?댁슂\.|?듬땲??./).filter(Boolean).length;
+  const sentences = normalized.split(/[.!?]|니다\.|어요\.|습니다\./).filter(Boolean).length;
   const detailMatches = countMatches(normalized, DETAIL_KEYWORDS);
   const usabilityMatches = countMatches(normalized, USABILITY_KEYWORDS);
   const positiveMatches = countMatches(normalized, POSITIVE_KEYWORDS);
   const negativeMatches = countMatches(normalized, NEGATIVE_KEYWORDS);
-  const hasContrast = /?ㅻ쭔|諛섎㈃|洹몃옒???섏?留??쒗렪/.test(normalized);
-  const hasSpecificScene = /?먯꽌|?낃뎄|二쇱감??留ㅼ옣|痢?肄붾꼫|?됱궗???쇱슫吏|?곗뒪??李쎄뎄/.test(normalized);
-  const hasActionableVerb = /蹂댁씠硫??덉쑝硫?諛붽씀硫?異붽??섎㈃|遺꾨━?섎㈃|?믪븘吏?.test(normalized);
+  const hasContrast = /다만|반면|그래도|하지만|한편/.test(normalized);
+  const hasSpecificScene = /에서|입구|주차장|매장|층|코너|행사장|라운지|데스크|창구/.test(normalized);
+  const hasActionableVerb = /보이면|있으면|바꾸면|추가하면|분리되면|높아질/.test(normalized);
 
   const specificity = clamp(
     8
@@ -495,8 +506,8 @@ function scoreComment(comment) {
     5
       + Math.floor(normalized.length / 45)
       + Math.min(sentences * 2, 6)
-      + (/[媛-??/.test(normalized) ? 3 : 0)
-      + (/?듬땲???댁슂|?⑸땲??.test(normalized) ? 3 : 0),
+      + (/[가-힣]/.test(normalized) ? 3 : 0)
+      + (/습니다|어요|합니다/.test(normalized) ? 3 : 0),
     0,
     20
   );
@@ -511,18 +522,18 @@ function scoreComment(comment) {
 
 function buildSelectionReason(record) {
   if (record.ai_score_specificity >= 34 && record.ai_score_usability >= 34) {
-    return "援ъ껜?깃낵 ?쒖슜?깆씠 紐⑤몢 ?믪쓬";
+    return "구체성과 활용성이 모두 높음";
   }
   if (record.ai_score_specificity >= 34) {
-    return "?곹솴 ?ㅻ챸??留ㅼ슦 援ъ껜??;
+    return "상황 설명이 매우 구체적";
   }
   if (record.ai_score_usability >= 34) {
-    return "?댁쁺 媛쒖꽑 ?ъ씤?멸? 紐낇솗";
+    return "운영 개선 포인트가 명확";
   }
   if (record.ai_score_authenticity >= 16) {
-    return "?묐떟 ?꾩꽦?꾩? 吏꾩젙?깆씠 ?믪쓬";
+    return "응답 완성도와 진정성이 높음";
   }
-  return "洹좏삎 ?덈뒗 ?곗닔 ?묐떟";
+  return "균형 있는 우수 응답";
 }
 
 function incrementCount(map, key, amount = 1) {
@@ -536,7 +547,7 @@ function sortCountEntries(map) {
 function formatTopLabels(entries, maxItems = 3) {
   return entries
     .slice(0, maxItems)
-    .map(([label, count]) => `${label}(${count}嫄?`)
+    .map(([label, count]) => `${label}(${count}건)`)
     .join(", ");
 }
 
@@ -570,20 +581,20 @@ function buildSummaryFromCandidates(candidates) {
 
   return {
     frequentIssuesText: topCategories.length
-      ? `媛??留롮씠 ?멸툒??移댄뀒怨좊━??${formatTopLabels(topCategories)}?대ŉ, ?곸쐞 ?꾨낫援곗뿉????二쇱젣?ㅼ씠 諛섎났?곸쑝濡??깆옣?덉뒿?덈떎.`
-      : "移댄뀒怨좊━蹂??멸툒??吏묎퀎???곗씠?곌? ?꾩쭅 異⑸텇?섏? ?딆뒿?덈떎.",
+      ? `가장 많이 언급된 카테고리는 ${formatTopLabels(topCategories)}이며, 상위 후보군에서 이 주제들이 반복적으로 등장했습니다.`
+      : "카테고리별 언급을 집계할 데이터가 아직 충분하지 않습니다.",
     positiveText: topPositive.length
-      ? `${formatTopLabels(topPositive)} 愿??移?갔 ?섍껄??留롮븯?듬땲??`
-      : "?쒕졆??湲띿젙 ?ъ씤?멸? ?꾩쭅 異⑸텇?섏? ?딆뒿?덈떎.",
+      ? `${formatTopLabels(topPositive)} 관련 칭찬 의견이 많았습니다.`
+      : "뚜렷한 긍정 포인트가 아직 충분하지 않습니다.",
     negativeText: topNegative.length
-      ? `${formatTopLabels(topNegative)} 愿???꾩돩?怨?媛쒖꽑 ?붿껌??留롮븯?듬땲??`
-      : "?쒕졆??遺???ъ씤?멸? ?꾩쭅 留롮? ?딆뒿?덈떎."
+      ? `${formatTopLabels(topNegative)} 관련 아쉬움과 개선 요청이 많았습니다.`
+      : "뚜렷한 부정 포인트가 아직 많지 않습니다."
   };
 }
 
 function groupByStore(list) {
   const counts = list.reduce((accumulator, item) => {
-    const store = item.store_name || "誘몄???;
+    const store = item.store_name || "미지정";
     accumulator[store] = (accumulator[store] || 0) + 1;
     return accumulator;
   }, {});
@@ -662,7 +673,7 @@ function analyzeRows(rows, settings) {
     candidates,
     startDate,
     endDate,
-    monthlyLabel: startDate ? startDate.slice(0, 7) : "誘명솗??,
+    monthlyLabel: startDate ? startDate.slice(0, 7) : "미확인",
     summary: buildSummaryFromCandidates(candidates)
   };
 }
@@ -673,7 +684,7 @@ function createBatch(rows, fileName, settings) {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     fileName,
-    status: "?꾨즺",
+    status: "완료",
     promptVersion: settings.promptVersion,
     finalCount: settings.finalCount,
     reserveCount: settings.reserveCount,
@@ -687,7 +698,7 @@ function createBatchFromAnalysis(rows, fileName, settings, analysis, source) {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     fileName,
-    status: "?꾨즺",
+    status: "완료",
     promptVersion: settings.promptVersion,
     finalCount: settings.finalCount,
     reserveCount: settings.reserveCount,
@@ -702,7 +713,7 @@ function createProcessingBatch(fileName, rowCount, settings) {
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString(),
     fileName,
-    status: "遺꾩꽍以?,
+    status: "분석중",
     promptVersion: settings.promptVersion,
     finalCount: settings.finalCount,
     reserveCount: settings.reserveCount,
@@ -713,7 +724,7 @@ function createProcessingBatch(fileName, rowCount, settings) {
     candidates: [],
     startDate: "",
     endDate: "",
-    monthlyLabel: "遺꾩꽍以?,
+    monthlyLabel: "분석중",
     summary: {
       frequentIssuesText: "",
       positiveText: "",
@@ -728,7 +739,7 @@ function replaceBatch(batchId, nextBatch) {
 
 async function analyzeRowsWithAI(rows, settings) {
   if (!settings.apiKey) {
-    throw new Error("OpenAI API ?ㅻ? 癒쇱? ?낅젰??二쇱꽭??");
+    throw new Error("OpenAI API 키를 먼저 입력해 주세요.");
   }
 
   const response = await fetch("/api/analyze", {
@@ -751,12 +762,12 @@ async function analyzeRowsWithAI(rows, settings) {
   }
 
   if (!response.ok) {
-    const message = payload?.error || "AI 遺꾩꽍 ?붿껌 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.";
+    const message = payload?.error || "AI 분석 요청 중 오류가 발생했습니다.";
     throw new Error(message);
   }
 
   if (!payload?.results || !Array.isArray(payload.results)) {
-    throw new Error("AI 遺꾩꽍 寃곌낵 ?뺤떇???щ컮瑜댁? ?딆뒿?덈떎.");
+    throw new Error("AI 분석 결과 형식이 올바르지 않습니다.");
   }
 
   const resultMap = new Map(payload.results.map((item) => [String(item.survey_no), item]));
@@ -765,7 +776,7 @@ async function analyzeRowsWithAI(rows, settings) {
     const surveyNo = String(row.survey_no);
     const result = resultMap.get(surveyNo);
     if (!result) {
-      throw new Error(`?ㅻЦ踰덊샇 ${surveyNo}??遺꾩꽍 寃곌낵媛 ?꾨씫?섏뿀?듬땲??`);
+      throw new Error(`설문번호 ${surveyNo}의 분석 결과가 누락되었습니다.`);
     }
 
     const comment = String(row.comment_text || "").replace(/\s+/g, " ").trim();
@@ -804,7 +815,7 @@ async function analyzeRowsWithAI(rows, settings) {
     candidates,
     startDate,
     endDate,
-    monthlyLabel: startDate ? startDate.slice(0, 7) : "誘명솗??,
+    monthlyLabel: startDate ? startDate.slice(0, 7) : "미확인",
     summary: buildSummaryFromCandidates(candidates)
   };
 }
@@ -814,8 +825,8 @@ function getActiveBatch() {
 }
 
 function setUploadStatus(fileCount, rowCount, status, message) {
-  document.getElementById("uploadFileCount").textContent = `${fileCount}嫄?;
-  document.getElementById("uploadRowCount").textContent = `${rowCount}嫄?;
+  document.getElementById("uploadFileCount").textContent = `${fileCount}건`;
+  document.getElementById("uploadRowCount").textContent = `${rowCount}건`;
   document.getElementById("uploadStatus").textContent = status;
   document.getElementById("uploadMessage").textContent = message;
 }
@@ -823,7 +834,7 @@ function setUploadStatus(fileCount, rowCount, status, message) {
 function renderHistory() {
   const container = document.getElementById("historyList");
   if (!state.history.length) {
-    container.innerHTML = `<div class="empty-state">?꾩쭅 ??λ맂 泥섎━ ?대젰???놁뒿?덈떎. CSV瑜??낅줈?쒗븳 ??遺꾩꽍???쒖옉??二쇱꽭??</div>`;
+    container.innerHTML = `<div class="empty-state">아직 저장된 처리 이력이 없습니다. CSV를 업로드한 뒤 분석을 시작해 주세요.</div>`;
     return;
   }
 
@@ -834,14 +845,14 @@ function renderHistory() {
       <article class="history-item">
         <div class="history-meta">
           <div class="history-title">${escapeHtml(batch.fileName)}</div>
-          <div class="history-sub">${formatDateTime(batch.createdAt)} 쨌 ${batch.monthlyLabel} 쨌 ${batch.rowCount.toLocaleString("ko-KR")}嫄?/div>
-          <div class="history-sub">?꾨＼?꾪듃 踰꾩쟾: ${escapeHtml(batch.promptVersion)} 쨌 理쒖쥌 ${batch.finalCount}紐?/ ?꾨낫 ${batch.reserveCount}紐?쨌 ${batch.analysisSource === "ai" ? "OpenAI 遺꾩꽍" : "濡쒖뺄 洹쒖튃 遺꾩꽍"}</div>
-          ${batch.errorMessage ? `<div class="history-sub">?ㅻ쪟 ?댁슜: ${escapeHtml(batch.errorMessage)}</div>` : ""}
+          <div class="history-sub">${formatDateTime(batch.createdAt)} · ${batch.monthlyLabel} · ${batch.rowCount.toLocaleString("ko-KR")}건</div>
+          <div class="history-sub">프롬프트 버전: ${escapeHtml(batch.promptVersion)} · 최종 ${batch.finalCount}명 / 후보 ${batch.reserveCount}명 · ${batch.analysisSource === "ai" ? "OpenAI 분석" : "로컬 규칙 분석"}</div>
+          ${batch.errorMessage ? `<div class="history-sub">오류 내용: ${escapeHtml(batch.errorMessage)}</div>` : ""}
         </div>
         <div class="history-actions">
-          <span class="badge ${batch.status === "?꾨즺" ? "ready" : batch.status === "遺꾩꽍以? ? "waiting" : "danger"}">${batch.status}</span>
-          ${batch.status === "?꾨즺" ? `<button class="tiny-btn" type="button" data-action="open" data-id="${batch.id}">寃곌낵 蹂닿린</button>` : ""}
-          <button class="tiny-btn danger" type="button" data-action="delete" data-id="${batch.id}">??젣</button>
+          <span class="badge ${batch.status === "완료" ? "ready" : batch.status === "분석중" ? "waiting" : "danger"}">${batch.status}</span>
+          ${batch.status === "완료" ? `<button class="tiny-btn" type="button" data-action="open" data-id="${batch.id}">결과 보기</button>` : ""}
+          <button class="tiny-btn danger" type="button" data-action="delete" data-id="${batch.id}">삭제</button>
         </div>
       </article>
     `)
@@ -851,12 +862,12 @@ function renderHistory() {
 function updateStoreFilterOptions(batch) {
   const select = document.getElementById("storeFilterSelect");
   if (!batch) {
-    select.innerHTML = `<option value="all">?꾩껜 ?먰룷</option>`;
+    select.innerHTML = `<option value="all">전체 점포</option>`;
     return;
   }
   const stores = [...new Set(batch.analyzed.map((item) => item.store_name).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, "ko"));
-  select.innerHTML = `<option value="all">?꾩껜 ?먰룷</option>${stores.map((store) => `<option value="${escapeHtml(store)}">${escapeHtml(store)}</option>`).join("")}`;
+  select.innerHTML = `<option value="all">전체 점포</option>${stores.map((store) => `<option value="${escapeHtml(store)}">${escapeHtml(store)}</option>`).join("")}`;
   select.value = state.storeFilter;
 }
 
@@ -864,16 +875,16 @@ function renderSummary(summary) {
   const grid = document.getElementById("summaryGrid");
   const items = [
     {
-      title: "?먯＜ ?깆옣???댁뒋",
-      text: summary.frequentIssuesText || "遺꾩꽍???ㅼ썙?쒓? 異⑸텇?섏? ?딆뒿?덈떎."
+      title: "자주 등장한 이슈",
+      text: summary.frequentIssuesText || "분석할 키워드가 충분하지 않습니다."
     },
     {
-      title: "湲띿젙 ?ъ씤??,
-      text: summary.positiveText || "?쒕졆??湲띿젙 ?ъ씤?멸? ?꾩쭅 留롮? ?딆뒿?덈떎."
+      title: "긍정 포인트",
+      text: summary.positiveText || "뚜렷한 긍정 포인트가 아직 많지 않습니다."
     },
     {
-      title: "遺???ъ씤??,
-      text: summary.negativeText || "媛뺥븳 遺???ъ씤?몃뒗 留롮씠 蹂댁씠吏 ?딆븯?듬땲??"
+      title: "부정 포인트",
+      text: summary.negativeText || "강한 부정 포인트는 많이 보이지 않았습니다."
     }
   ];
   grid.innerHTML = items.map((item) => `
@@ -888,24 +899,24 @@ function renderCriteria() {
   const container = document.getElementById("criteriaBox");
   container.innerHTML = `
     <div class="criteria-row">
-      <div class="criteria-side">?ъ쟾 ?쒖쇅 湲곗?</div>
-      <div class="criteria-main">?꾪솕踰덊샇 ?ы븿 / ?ㅻ챸 ?몄텧 / ?뺤꽕쨌鍮꾨갑쨌?먯삤 / 20??誘몃쭔 ?⑤떟??/ ?섎? ?녿뒗 諛섎났 ?묐떟? 0??泥섎━ ???쒖쇅?⑸땲??</div>
+      <div class="criteria-side">사전 제외 기준</div>
+      <div class="criteria-main">전화번호 포함 / 실명 노출 / 욕설·비방·혐오 / 20자 미만 단답형 / 의미 없는 반복 응답은 0점 처리 후 제외합니다.</div>
     </div>
     <div class="criteria-row">
-      <div class="criteria-side">援ъ껜??40??/div>
-      <div class="criteria-main">?대뼡 ?곹솴怨??쒕퉬??寃쏀뿕?몄? ?λ㈃???좎삤瑜??뺣룄濡?援ъ껜?곸씤 ?묐떟???믪? ?먯닔瑜?遺?ы빀?덈떎.</div>
+      <div class="criteria-side">구체성 40점</div>
+      <div class="criteria-main">어떤 상황과 서비스 경험인지 장면이 떠오를 정도로 구체적인 응답에 높은 점수를 부여합니다.</div>
     </div>
     <div class="criteria-row">
-      <div class="criteria-side">?쒖슜??40??/div>
-      <div class="criteria-main">?댁쁺 媛쒖꽑 ?뚰듃??媛뺤젏 ?ъ씤?멸? ?쒕졆???ㅼ젣 VOC ?쒖슜?꾧? ?믪? ?묐떟???곗꽑?⑸땲??</div>
+      <div class="criteria-side">활용성 40점</div>
+      <div class="criteria-main">운영 개선 힌트나 강점 포인트가 뚜렷해 실제 VOC 활용도가 높은 응답을 우선합니다.</div>
     </div>
     <div class="criteria-row">
-      <div class="criteria-side">吏꾩젙??20??/div>
-      <div class="criteria-main">臾몄옣 援ъ“媛 ?먯뿰?ㅻ읇怨?異⑸텇??湲몄씠? ?깆떎???쒖닠???덈뒗 ?묐떟?쇱닔濡?媛?고빀?덈떎.</div>
+      <div class="criteria-side">진정성 20점</div>
+      <div class="criteria-main">문장 구조가 자연스럽고 충분한 길이와 성실한 서술이 있는 응답일수록 가산합니다.</div>
     </div>
     <div class="criteria-row">
-      <div class="criteria-side">理쒖쥌 ?뺣젹</div>
-      <div class="criteria-main">珥앹젏 > 援ъ껜??> ?쒖슜??> 吏꾩젙??> 李몄뿬 ?쇱옄 鍮좊Ⅸ?쒖쑝濡??곗꽑?쒖쐞瑜?怨좎젙?⑸땲??</div>
+      <div class="criteria-side">최종 정렬</div>
+      <div class="criteria-main">총점 > 구체성 > 활용성 > 진정성 > 참여 일자 빠른순으로 우선순위를 고정합니다.</div>
     </div>
   `;
 }
@@ -952,10 +963,10 @@ function renderDistribution(containerId, items, total, pageKey) {
       <table class="distribution-table">
         <thead>
           <tr>
-            <th>?쒖쐞</th>
-            <th>?먰룷紐?/th>
-            <th>?몄썝??/th>
-            <th>鍮꾩쨷</th>
+            <th>순위</th>
+            <th>점포명</th>
+            <th>인원수</th>
+            <th>비중</th>
           </tr>
         </thead>
         <tbody>
@@ -963,18 +974,18 @@ function renderDistribution(containerId, items, total, pageKey) {
             <tr>
               <td>${item.rank}</td>
               <td>${escapeHtml(item.store)}</td>
-              <td>${item.count.toLocaleString("ko-KR")}紐?/td>
+              <td>${item.count.toLocaleString("ko-KR")}명</td>
               <td>${total ? ((item.count / total) * 100).toFixed(1) : "0.0"}%</td>
             </tr>
           `).join("")}
         </tbody>
       </table>
       <div class="distribution-footer">
-        <span>${items.length}媛??먰룷 以?${visible.length}媛??쒖떆</span>
+        <span>${items.length}개 점포 중 ${visible.length}개 표시</span>
         <div class="distribution-pager">
-          <button class="tiny-btn" type="button" data-page-type="${pageKey}" data-page-move="-1">?댁쟾</button>
+          <button class="tiny-btn" type="button" data-page-type="${pageKey}" data-page-move="-1">이전</button>
           <span>${page} / ${maxPage}</span>
-          <button class="tiny-btn" type="button" data-page-type="${pageKey}" data-page-move="1">?ㅼ쓬</button>
+          <button class="tiny-btn" type="button" data-page-type="${pageKey}" data-page-move="1">다음</button>
         </div>
       </div>
     </div>
@@ -996,18 +1007,18 @@ function renderCandidateTable(candidates) {
   document.getElementById("candidateTableBody").innerHTML = filtered.map((item) => `
     <tr>
       <td class="col-rank">${item.rank}</td>
-      <td class="col-group"><span class="group-pill ${item.selection_group}">${item.selection_group === "final" ? "理쒖쥌" : "?꾨낫"}</span></td>
+      <td class="col-group"><span class="group-pill ${item.selection_group}">${item.selection_group === "final" ? "최종" : "후보"}</span></td>
       <td class="col-store">${escapeHtml(item.store_name)}</td>
       <td class="col-id">${escapeHtml(item.customer_id)}</td>
-      <td class="col-score">${item.ai_total_score}??/td>
+      <td class="col-score">${item.ai_total_score}점</td>
       <td class="col-reason left">${escapeHtml(item.selection_reason)}</td>
       <td class="col-response left"><span class="response-preview">${escapeHtml(item.comment_text)}</span></td>
-      <td class="col-action"><button class="tiny-btn" type="button" data-action="detail" data-survey-no="${escapeHtml(item.survey_no)}">?곸꽭蹂닿린</button></td>
+      <td class="col-action"><button class="tiny-btn" type="button" data-action="detail" data-survey-no="${escapeHtml(item.survey_no)}">상세보기</button></td>
     </tr>
   `).join("");
 
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="8">議곌굔??留욌뒗 ?꾨낫媛 ?놁뒿?덈떎.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8">조건에 맞는 후보가 없습니다.</td></tr>`;
   }
 }
 
@@ -1017,20 +1028,20 @@ function renderDashboard() {
   updateStoreFilterOptions(batch);
 
   if (!batch) {
-    document.getElementById("dashboardSubtitle").textContent = "?꾩쭅 遺꾩꽍??諛곗튂媛 ?놁뒿?덈떎.";
+    document.getElementById("dashboardSubtitle").textContent = "아직 분석된 배치가 없습니다.";
     document.getElementById("metricDateRange").textContent = "-";
     document.getElementById("metricTotal").textContent = "-";
     document.getElementById("metricExcluded").textContent = "-";
     document.getElementById("metricAverageScore").textContent = "-";
     document.getElementById("metricAverageLength").textContent = "-";
-    document.getElementById("summaryGrid").innerHTML = `<div class="empty-state">遺꾩꽍 ?꾨즺??諛곗튂瑜??좏깮?섎㈃ ?붿빟 由ы룷?멸? ?ш린???쒖떆?⑸땲??</div>`;
-    document.getElementById("allStoreDistribution").innerHTML = `<div class="empty-state">?꾩쭅 ?먰룷 遺꾪룷 ?곗씠?곌? ?놁뒿?덈떎.</div>`;
-    document.getElementById("selectedStoreDistribution").innerHTML = `<div class="empty-state">?꾩쭅 ?곗닔 ?묐떟 ?먰룷 遺꾪룷 ?곗씠?곌? ?놁뒿?덈떎.</div>`;
-    document.getElementById("candidateTableBody").innerHTML = `<tr><td colspan="8">遺꾩꽍 ?꾨즺 ???꾨낫 ?뚯씠釉붿씠 ?쒖떆?⑸땲??</td></tr>`;
+    document.getElementById("summaryGrid").innerHTML = `<div class="empty-state">분석 완료된 배치를 선택하면 요약 리포트가 여기에 표시됩니다.</div>`;
+    document.getElementById("allStoreDistribution").innerHTML = `<div class="empty-state">아직 점포 분포 데이터가 없습니다.</div>`;
+    document.getElementById("selectedStoreDistribution").innerHTML = `<div class="empty-state">아직 우수 응답 점포 분포 데이터가 없습니다.</div>`;
+    document.getElementById("candidateTableBody").innerHTML = `<tr><td colspan="8">분석 완료 후 후보 테이블이 표시됩니다.</td></tr>`;
     return;
   }
 
-  document.getElementById("dashboardSubtitle").textContent = `${batch.fileName} 쨌 ${batch.monthlyLabel} 쨌 ${batch.rowCount.toLocaleString("ko-KR")}嫄?遺꾩꽍 ?꾨즺`;
+  document.getElementById("dashboardSubtitle").textContent = `${batch.fileName} · ${batch.monthlyLabel} · ${batch.rowCount.toLocaleString("ko-KR")}건 분석 완료`;
   document.getElementById("startDateInput").value = document.getElementById("startDateInput").value || batch.startDate;
   document.getElementById("endDateInput").value = document.getElementById("endDateInput").value || batch.endDate;
 
@@ -1044,13 +1055,13 @@ function renderDashboard() {
   const exclusionRate = view.scoped.length ? ((view.excluded.length / view.scoped.length) * 100).toFixed(1) : "0.0";
 
   document.getElementById("metricDateRange").textContent = `${formatDate(view.startDate)} ~ ${formatDate(view.endDate)}`;
-  document.getElementById("metricTotal").textContent = `${view.scoped.length.toLocaleString("ko-KR")}嫄?;
-  document.getElementById("metricExcluded").textContent = `${view.excluded.length.toLocaleString("ko-KR")}嫄?(${exclusionRate}%)`;
-  document.getElementById("metricAverageScore").textContent = `${averageScore}??;
-  document.getElementById("metricAverageLength").textContent = `${averageLength}??;
-  document.getElementById("candidateTitle").textContent = `由ъ썙???꾨낫 (${batch.finalCount + batch.reserveCount}紐?`;
-  document.getElementById("allStoresTitle").textContent = `?꾩껜 ?묐떟 ?먰룷 遺꾪룷 (${view.scoped.length.toLocaleString("ko-KR")}紐?`;
-  document.getElementById("selectedStoresTitle").textContent = `?곗닔 ?묐떟 ?먰룷 遺꾪룷 (${view.candidates.length.toLocaleString("ko-KR")}紐?`;
+  document.getElementById("metricTotal").textContent = `${view.scoped.length.toLocaleString("ko-KR")}건`;
+  document.getElementById("metricExcluded").textContent = `${view.excluded.length.toLocaleString("ko-KR")}건 (${exclusionRate}%)`;
+  document.getElementById("metricAverageScore").textContent = `${averageScore}점`;
+  document.getElementById("metricAverageLength").textContent = `${averageLength}자`;
+  document.getElementById("candidateTitle").textContent = `리워드 후보 (${batch.finalCount + batch.reserveCount}명)`;
+  document.getElementById("allStoresTitle").textContent = `전체 응답 점포 분포 (${view.scoped.length.toLocaleString("ko-KR")}명)`;
+  document.getElementById("selectedStoresTitle").textContent = `우수 응답 점포 분포 (${view.candidates.length.toLocaleString("ko-KR")}명)`;
 
   renderSummary(view.summary);
   renderDistribution("allStoreDistribution", groupByStore(view.scoped), view.scoped.length, "all");
@@ -1067,34 +1078,34 @@ function openDetailModal(surveyNo) {
 
   document.getElementById("detailModalBody").innerHTML = `
     <div class="detail-box">
-      <strong>湲곕낯 ?뺣낫</strong>
-      <p class="detail-copy">?ㅻЦ踰덊샇 ${escapeHtml(target.survey_no)} 쨌 怨좉컼 ${escapeHtml(target.customer_id)} 쨌 ?먰룷 ${escapeHtml(target.store_name)} 쨌 李몄뿬?쇱옄 ${formatDate(target.survey_date)}</p>
+      <strong>기본 정보</strong>
+      <p class="detail-copy">설문번호 ${escapeHtml(target.survey_no)} · 고객 ${escapeHtml(target.customer_id)} · 점포 ${escapeHtml(target.store_name)} · 참여일자 ${formatDate(target.survey_date)}</p>
     </div>
     <div class="detail-score-grid">
       <div class="detail-score">
-        <strong>珥앹젏</strong>
+        <strong>총점</strong>
         <span>${target.ai_total_score}</span>
       </div>
       <div class="detail-score">
-        <strong>援ъ껜??/strong>
+        <strong>구체성</strong>
         <span>${target.ai_score_specificity}</span>
       </div>
       <div class="detail-score">
-        <strong>?쒖슜??/strong>
+        <strong>활용성</strong>
         <span>${target.ai_score_usability}</span>
       </div>
       <div class="detail-score">
-        <strong>吏꾩젙??/strong>
+        <strong>진정성</strong>
         <span>${target.ai_score_authenticity}</span>
       </div>
     </div>
     <div class="detail-box">
-      <strong>?좎젙/?쒖쇅 ?뺣낫</strong>
-      <p class="detail-copy">${target.is_excluded ? `?쒖쇅 ?ъ쑀: ${escapeHtml(target.exclusion_reason)}` : `?좎젙 ?댁쑀: ${escapeHtml(buildSelectionReason(target))}`}</p>
+      <strong>선정/제외 정보</strong>
+      <p class="detail-copy">${target.is_excluded ? `제외 사유: ${escapeHtml(target.exclusion_reason)}` : `선정 이유: ${escapeHtml(buildSelectionReason(target))}`}</p>
     </div>
     <div class="detail-box">
-      <strong>?묐떟 ?먮Ц</strong>
-      <p>${escapeHtml(target.comment_text || "(?묐떟 ?놁쓬)")}</p>
+      <strong>응답 원문</strong>
+      <p>${escapeHtml(target.comment_text || "(응답 없음)")}</p>
     </div>
   `;
 
@@ -1161,13 +1172,13 @@ function handleFileSelection(file) {
 
 async function processCurrentUpload() {
   if (!isAuthenticated()) {
-    setUploadStatus(0, 0, "?湲?, "癒쇱? 怨듭슜 ?몄쬆肄붾뱶濡?濡쒓렇?명빐 二쇱꽭??");
+    setUploadStatus(0, 0, "대기", "먼저 공용 인증코드로 로그인해 주세요.");
     updateAuthUI();
     return;
   }
 
   if (!state.pendingUpload) {
-    setUploadStatus(0, 0, "?湲?, "癒쇱? CSV ?뚯씪???낅줈?쒗빐 二쇱꽭??");
+    setUploadStatus(0, 0, "대기", "먼저 CSV 파일을 업로드해 주세요.");
     return;
   }
 
@@ -1177,14 +1188,14 @@ async function processCurrentUpload() {
   const apiKey = (document.getElementById("apiKeyInput")?.value || "").trim();
 
   if (!apiKey) {
-    setUploadStatus(1, state.pendingUpload.rows.length, "?湲?, "OpenAI API ?ㅻ? ?낅젰????遺꾩꽍???쒖옉??二쇱꽭??");
+    setUploadStatus(1, state.pendingUpload.rows.length, "대기", "OpenAI API 키를 입력한 뒤 분석을 시작해 주세요.");
     return;
   }
 
   state.apiKey = apiKey;
   saveStoredApiKey(apiKey);
 
-  setUploadStatus(1, state.pendingUpload.rows.length, "遺꾩꽍以?, "OpenAI濡??먯닔?붿? ?꾨낫 異붿텧??吏꾪뻾?섍퀬 ?덉뒿?덈떎.");
+  setUploadStatus(1, state.pendingUpload.rows.length, "분석중", "OpenAI로 점수화와 후보 추출을 진행하고 있습니다.");
   const processingBatch = createProcessingBatch(
     state.pendingUpload.fileName,
     state.pendingUpload.rows.length,
@@ -1218,17 +1229,17 @@ async function processCurrentUpload() {
     saveHistory();
     renderHistory();
     renderDashboard();
-    setUploadStatus(1, batch.rowCount, "?꾨즺", `${batch.fileName} AI 遺꾩꽍???꾨즺?섏뿀?듬땲?? 泥섎━ ?대젰?먯꽌 寃곌낵 蹂닿린 踰꾪듉???뚮윭 ?뺤씤?섏꽭??`);
+    setUploadStatus(1, batch.rowCount, "완료", `${batch.fileName} AI 분석이 완료되었습니다. 처리 이력에서 결과 보기 버튼을 눌러 확인하세요.`);
   } catch (error) {
     replaceBatch(processingBatch.id, {
       ...processingBatch,
-      status: "?ㅻ쪟",
-      monthlyLabel: "?ㅻ쪟",
-      errorMessage: error.message || "AI 遺꾩꽍 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎."
+      status: "오류",
+      monthlyLabel: "오류",
+      errorMessage: error.message || "AI 분석 중 오류가 발생했습니다."
     });
     saveHistory();
     renderHistory();
-    setUploadStatus(1, state.pendingUpload.rows.length, "?ㅻ쪟", error.message || "AI 遺꾩꽍 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.");
+    setUploadStatus(1, state.pendingUpload.rows.length, "오류", error.message || "AI 분석 중 오류가 발생했습니다.");
   }
 }
 
@@ -1408,4 +1419,3 @@ function init() {
 }
 
 init();
-
