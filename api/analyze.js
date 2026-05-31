@@ -1,6 +1,7 @@
 const OPENAI_URL = "https://api.openai.com/v1/responses";
 const MODEL = "gpt-4o-mini";
 const CHUNK_SIZE = 20;
+const MAX_CHUNK_RETRIES = 2;
 
 const EXCLUSION_REASONS = [
   "",
@@ -73,6 +74,9 @@ const SYSTEM_PROMPT = `
 - 반복 문자
 - 의미 없는 문자열
 - 단어 반복
+- 단, 의미가 읽히는 불만이나 칭찬은 유사 표현이 반복되어도 제외하지 않습니다.
+- 오타, 띄어쓰기 오류, 구어체 표현은 제외 사유가 아닙니다.
+- 불친절, 설명 부족, 가격 대비 품질 불만처럼 대상과 의미가 있는 응답은 제외하지 않습니다.
 
 [개인정보 판단 원칙]
 - 개인을 특정할 수 있는 정보가 포함되면 제외합니다.
@@ -89,6 +93,8 @@ const SYSTEM_PROMPT = `
   "욕설/비방/혐오 표현"
   "20자 미만 단답형"
   "의미 없는 반복 응답"
+- 의미가 읽히는 불만/칭찬 응답은 제외하지 말고 점수화합니다.
+- 불만 응답은 욕설, 비방, 혐오 또는 개인정보 노출이 아닌 한 제외하지 않습니다.
 
 [점수화 기준]
 1) 구체성 (0~40점)
@@ -113,9 +119,20 @@ const SYSTEM_PROMPT = `
 - 일반 칭찬만 나열한 응답은 최대 55점입니다.
 - 구체적 장면, 이유, 행동, 결과가 없으면 최대 65점입니다.
 - 운영 개선 또는 우수사례로 활용할 시사점이 없으면 최대 75점입니다.
+- "직원 응대가 좋았다", "직원이 세심했다", "안내를 잘했다" 정도의 표현만 있고 구체적인 직원 행동이나 상황 설명이 없으면 최대 65점입니다.
+- "만족스러운 쇼핑이었다", "좋은 쇼핑이었다"처럼 결과 감상만 있으면 최대 60점입니다.
+- 상품, 행사, 응대가 언급되어도 어떤 상품/행사인지, 어떤 응대 행동인지 설명이 없으면 최대 65점입니다.
+- 80점 이상은 구체적 장면과 직원/매장 행동이 반드시 있어야 합니다.
 - 90점 이상은 구체적 상황, 직원/매장 행동 또는 문제, 고객이 느낀 결과, 운영 활용성이 모두 있어야 합니다.
 - 예: "응대가 친절합니다. 매장도 깨끗하고요. 상품 구성도 좋습니다."는 일반 칭찬 나열이므로 55점 초과 금지입니다.
 - 예: "식품관 계산대 대기줄이 길었는데 직원이 추가 계산대로 바로 안내해줘서 대기 시간이 줄었습니다."는 장소, 문제, 행동, 결과가 있어 고득점 가능입니다.
+
+[불만 응답 평가 원칙]
+- 불만이라는 이유만으로 낮은 점수를 주지 않습니다.
+- 구체적인 불편 대상, 원인, 상황, 개선 힌트가 있으면 활용성 점수를 줄 수 있습니다.
+- 욕설, 비방, 혐오 표현이 아니라면 불만 응답은 제외하지 않습니다.
+- 예: "식당가 푸드코트 직원의 응대가 불친절했고 설명이 부족했으며 가격 대비 음식 품질도 아쉬웠습니다."는 의미 있는 불만 응답이므로 제외하지 않습니다.
+- 단, 불만 대상이 있어도 구체적 장면이나 원인 설명이 약하면 고득점은 제한합니다.
 
 [총점 계산]
 - ai_total_score = ai_score_specificity + ai_score_usability + ai_score_authenticity
@@ -212,6 +229,10 @@ function normalizeResult(result) {
     is_excluded: excluded,
     exclusion_reason: excluded ? exclusionReason : ""
   };
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function analyzeChunk(chunk, apiKey) {
@@ -330,9 +351,26 @@ ${JSON.stringify(chunk)}
   return normalized;
 }
 
+async function analyzeChunkWithRetry(chunk, apiKey) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= MAX_CHUNK_RETRIES; attempt += 1) {
+    try {
+      return await analyzeChunk(chunk, apiKey);
+    } catch (error) {
+      lastError = error;
+      if (attempt < MAX_CHUNK_RETRIES) {
+        await wait(700 * (attempt + 1));
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 async function analyzeChunkReliably(chunk, apiKey) {
   try {
-    return await analyzeChunk(chunk, apiKey);
+    return await analyzeChunkWithRetry(chunk, apiKey);
   } catch (error) {
     if (chunk.length <= 1) {
       throw error;
