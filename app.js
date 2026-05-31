@@ -1319,6 +1319,74 @@ function downloadCandidates() {
   URL.revokeObjectURL(url);
 }
 
+function downloadAllScores() {
+  const batch = getActiveBatch();
+  if (!batch) return;
+  const view = getFilteredBatchData(batch);
+  const candidateMap = new Map(view.candidates.map((item) => [String(item.row_id), item]));
+  const ranked = [...view.scoped]
+    .sort(compareCandidates)
+    .map((item, index) => {
+      const selected = candidateMap.get(String(item.row_id));
+      return {
+        ...item,
+        rank: index + 1,
+        selection_group: selected?.selection_group || "",
+        selection_reason: selected?.selection_reason || ""
+      };
+    });
+
+  const rows = [
+    [
+      "rank",
+      "row_id",
+      "selection_group",
+      "survey_no",
+      "customer_id",
+      "store_name",
+      "survey_date",
+      "ai_total_score",
+      "ai_score_specificity",
+      "ai_score_usability",
+      "ai_score_authenticity",
+      "is_excluded",
+      "exclusion_reason",
+      "selection_reason",
+      "comment_text"
+    ],
+    ...ranked.map((item) => [
+      item.rank,
+      item.row_id,
+      item.selection_group,
+      item.survey_no,
+      item.customer_id,
+      item.store_name,
+      item.survey_date,
+      item.ai_total_score,
+      item.ai_score_specificity,
+      item.ai_score_usability,
+      item.ai_score_authenticity,
+      item.is_excluded ? "true" : "false",
+      item.exclusion_reason,
+      item.selection_reason,
+      item.comment_text
+    ])
+  ];
+
+  const csv = rows
+    .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${batch.monthlyLabel}-all-review-scores.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 function bindEvents() {
   document.getElementById("loginSubmitBtn").addEventListener("click", attemptLogin);
   document.getElementById("refreshCaptchaBtn").addEventListener("click", generateCaptchaValue);
@@ -1410,6 +1478,7 @@ function bindEvents() {
   });
 
   document.getElementById("downloadCandidatesBtn").addEventListener("click", downloadCandidates);
+  document.getElementById("downloadAllScoresBtn").addEventListener("click", downloadAllScores);
 
   document.getElementById("candidateTableBody").addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action='detail']");
