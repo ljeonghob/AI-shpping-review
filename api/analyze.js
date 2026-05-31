@@ -19,7 +19,8 @@ const SYSTEM_PROMPT = `
 
 [중요 원칙]
 - 반드시 comment_text만 기반으로 판단합니다.
-- customer_id, store_name, survey_date, survey_no는 점수 판단에 사용하지 않습니다.
+- row_id는 원본 행 매칭용 식별자이며, 입력값 그대로 출력해야 합니다.
+- customer_id, store_name, survey_date, survey_no, row_id는 점수 판단에 사용하지 않습니다.
 - 임의 해석, 창작, 보정 금지
 - 입력에 없는 정보 사용 금지
 - ai_selected_yn 값은 판단하지 않습니다. 이는 서버에서 정렬 기준으로 결정됩니다.
@@ -29,6 +30,7 @@ const SYSTEM_PROMPT = `
 - 결과는 반드시 JSON 형식으로만 반환합니다.
 
 [입력 데이터]
+- row_id
 - survey_no
 - customer_id
 - store_name
@@ -126,6 +128,7 @@ const SYSTEM_PROMPT = `
 {
   "results": [
     {
+      "row_id": "...",
       "survey_no": "...",
       "customer_id": "...",
       "store_name": "...",
@@ -186,6 +189,7 @@ function normalizeResult(result) {
     : "";
 
   return {
+    row_id: String(result.row_id || ""),
     survey_no: String(result.survey_no || ""),
     customer_id: String(result.customer_id || ""),
     store_name: String(result.store_name || ""),
@@ -211,6 +215,7 @@ async function analyzeChunk(chunk, apiKey) {
           type: "object",
           additionalProperties: false,
           properties: {
+            row_id: { type: "string" },
             survey_no: { type: "string" },
             customer_id: { type: "string" },
             store_name: { type: "string" },
@@ -227,6 +232,7 @@ async function analyzeChunk(chunk, apiKey) {
             }
           },
           required: [
+            "row_id",
             "survey_no",
             "customer_id",
             "store_name",
