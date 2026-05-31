@@ -21,6 +21,7 @@ const SYSTEM_PROMPT = `
 - 반드시 comment_text만 기반으로 판단합니다.
 - row_id는 원본 행 매칭용 식별자이며, 입력값 그대로 출력해야 합니다.
 - customer_id, store_name, survey_date, survey_no, row_id는 점수 판단에 사용하지 않습니다.
+- survey_no는 중복될 수 있으므로 절대 행 식별자로 사용하지 않습니다.
 - 임의 해석, 창작, 보정 금지
 - 입력에 없는 정보 사용 금지
 - ai_selected_yn 값은 판단하지 않습니다. 이는 서버에서 정렬 기준으로 결정됩니다.
@@ -117,11 +118,8 @@ const SYSTEM_PROMPT = `
 - comment_text는 원문 그대로 유지합니다.
 - 입력 행 수와 출력 행 수는 반드시 동일해야 합니다.
 - 어떤 경우에도 행을 삭제하거나 누락하면 안 됩니다.
-- 여러 응답 결과를 함께 반환할 경우 반드시 아래 우선순위로 내림차순 정렬합니다.
-  1. ai_total_score
-  2. ai_score_specificity
-  3. ai_score_usability
-  4. ai_score_authenticity
+- 출력 배열은 입력 배열의 row_id를 모두 포함해야 하며, 가능하면 입력 순서를 유지합니다.
+- 같은 survey_no가 반복되어도 행을 병합하거나 생략하면 안 됩니다.
 
 [출력 형식]
 반드시 아래 구조의 JSON만 반환합니다.
@@ -304,11 +302,35 @@ ${JSON.stringify(chunk)}
     throw new Error("OpenAI 구조화 응답 형식이 올바르지 않습니다.");
   }
 
-  if (parsed.results.length !== chunk.length) {
+  const normalized = parsed.results.map(normalizeResult);
+  const expectedIds = new Set(chunk.map((item) => String(item.row_id)));
+  const returnedIds = new Set(normalized.map((item) => String(item.row_id)));
+
+  if (normalized.length !== chunk.length || returnedIds.size !== expectedIds.size) {
     throw new Error("OpenAI 응답 행 수가 입력 행 수와 일치하지 않습니다.");
   }
 
-  return parsed.results.map(normalizeResult);
+  const missingIds = [...expectedIds].filter((id) => !returnedIds.has(id));
+  if (missingIds.length) {
+    throw new Error(`OpenAI 응답에서 행 ID ${missingIds.join(", ")} 결과가 누락되었습니다.`);
+  }
+
+  return normalized;
+}
+
+async function analyzeChunkReliably(chunk, apiKey) {
+  try {
+    return await analyzeChunk(chunk, apiKey);
+  } catch (error) {
+    if (chunk.length <= 1) {
+      throw error;
+    }
+
+    const midpoint = Math.ceil(chunk.length / 2);
+    const first = await analyzeChunkReliably(chunk.slice(0, midpoint), apiKey);
+    const second = await analyzeChunkReliably(chunk.slice(midpoint), apiKey);
+    return [...first, ...second];
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -332,7 +354,7 @@ module.exports = async function handler(req, res) {
     const results = [];
 
     for (const chunk of chunks) {
-      const analyzed = await analyzeChunk(chunk, apiKey);
+      const analyzed = await analyzeChunkReliably(chunk, apiKey);
       results.push(...analyzed);
     }
 
