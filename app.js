@@ -867,6 +867,15 @@ function setUploadStatus(fileCount, rowCount, status, message) {
   document.getElementById("uploadMessage").textContent = message;
 }
 
+function buildEstimateMessage(rowCount) {
+  if (!rowCount) return "";
+  const chunkCount = Math.ceil(rowCount / AI_CHUNK_SIZE);
+  const minMinutes = Math.max(1, Math.ceil(chunkCount * 0.2));
+  const maxMinutes = Math.max(minMinutes + 1, Math.ceil(chunkCount * 0.6));
+  const caution = rowCount >= 1000 ? " 브라우저 탭을 닫거나 새로고침하지 마세요." : "";
+  return `예상 처리: ${chunkCount}묶음, 약 ${minMinutes}~${maxMinutes}분.${caution}`;
+}
+
 function renderHistory() {
   const container = document.getElementById("historyList");
   if (!state.history.length) {
@@ -1049,7 +1058,7 @@ function renderCandidateTable(candidates) {
       <td class="col-score">${item.ai_total_score}점</td>
       <td class="col-reason left">${escapeHtml(item.selection_reason)}</td>
       <td class="col-response left"><span class="response-preview">${escapeHtml(item.comment_text)}</span></td>
-      <td class="col-action"><button class="tiny-btn" type="button" data-action="detail" data-survey-no="${escapeHtml(item.survey_no)}">상세보기</button></td>
+      <td class="col-action"><button class="tiny-btn" type="button" data-action="detail" data-row-id="${escapeHtml(item.row_id)}">상세보기</button></td>
     </tr>
   `).join("");
 
@@ -1105,17 +1114,17 @@ function renderDashboard() {
   renderCandidateTable(view.candidates);
 }
 
-function openDetailModal(surveyNo) {
+function openDetailModal(rowId) {
   const batch = getActiveBatch();
   if (!batch) return;
   const view = getFilteredBatchData(batch);
-  const target = view.scoped.find((item) => String(item.survey_no) === String(surveyNo));
+  const target = view.scoped.find((item) => String(item.row_id) === String(rowId));
   if (!target) return;
 
   document.getElementById("detailModalBody").innerHTML = `
     <div class="detail-box">
       <strong>기본 정보</strong>
-      <p class="detail-copy">설문번호 ${escapeHtml(target.survey_no)} · 고객 ${escapeHtml(target.customer_id)} · 점포 ${escapeHtml(target.store_name)} · 참여일자 ${formatDate(target.survey_date)}</p>
+      <p class="detail-copy">행 ID ${escapeHtml(target.row_id)} · 설문번호 ${escapeHtml(target.survey_no)} · 고객 ${escapeHtml(target.customer_id)} · 점포 ${escapeHtml(target.store_name)} · 참여일자 ${formatDate(target.survey_date)}</p>
     </div>
     <div class="detail-score-grid">
       <div class="detail-score">
@@ -1191,7 +1200,7 @@ function handleFileSelection(file) {
       }
 
       state.pendingUpload = { rows, fileName: file.name };
-      setUploadStatus(1, rows.length, "\uB300\uAE30", validation.message);
+      setUploadStatus(1, rows.length, "\uB300\uAE30", `${validation.message} · ${buildEstimateMessage(rows.length)}`);
     } catch (error) {
       state.pendingUpload = null;
       setUploadStatus(1, 0, "\uC624\uB958", error?.message || "\uD30C\uC77C \uCC98\uB9AC \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.");
@@ -1231,7 +1240,7 @@ async function processCurrentUpload() {
   state.apiKey = apiKey;
   saveStoredApiKey(apiKey);
 
-  setUploadStatus(1, state.pendingUpload.rows.length, "분석중", "OpenAI로 점수화와 후보 추출을 진행하고 있습니다.");
+  setUploadStatus(1, state.pendingUpload.rows.length, "분석중", `OpenAI로 점수화와 후보 추출을 진행하고 있습니다. ${buildEstimateMessage(state.pendingUpload.rows.length)}`);
   const processingBatch = createProcessingBatch(
     state.pendingUpload.fileName,
     state.pendingUpload.rows.length,
@@ -1483,7 +1492,7 @@ function bindEvents() {
   document.getElementById("candidateTableBody").addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action='detail']");
     if (!button) return;
-    openDetailModal(button.dataset.surveyNo);
+    openDetailModal(button.dataset.rowId);
   });
 
   document.body.addEventListener("click", (event) => {
