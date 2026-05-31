@@ -11,6 +11,8 @@ const REQUIRED_COLUMNS = [
   "comment_text"
 ];
 
+const AI_CHUNK_SIZE = 20;
+
 const COLUMN_ALIASES = {
   survey_no: ["survey_no", "\uC124\uBB38\uBC88\uD638"],
   customer_id: [
@@ -358,7 +360,10 @@ function parseWorkbook(arrayBuffer) {
 
     if (headerRowIndex === -1) return;
 
-    const headers = (matrix[headerRowIndex] || []).map((cell) => String(cell || "").trim());
+    const headers = (matrix[headerRowIndex] || []).map((cell, index) => {
+      const header = String(cell || "").trim();
+      return header || (index === 0 ? "__row_id_source" : "");
+    });
     const rows = matrix
       .slice(headerRowIndex + 1)
       .map((cells) => {
@@ -393,16 +398,20 @@ function normalizeRows(rows) {
     const customerIdKey = findColumnName(row, COLUMN_ALIASES.customer_id);
     const surveyDateKey = findColumnName(row, COLUMN_ALIASES.survey_date);
     const commentKey = findColumnName(row, COLUMN_ALIASES.comment_text);
+    const rowIdKey = ["row_id", "row id", "순번", "번호", "No", "NO", "", "__row_id_source"]
+      .find((key) => Object.prototype.hasOwnProperty.call(row, key)) || "";
     const storeNameKey = ["store_name", "\uCC38\uC5EC\uC9C0\uC810", "\uC810\uD3EC\uBA85", "\uB9E4\uC7A5\uBA85", "store"]
       .find((key) => Object.keys(row).includes(key)) || "";
 
     const surveyNo = String(row[surveyNoKey] || "").trim();
+    const rowId = String(row[rowIdKey] || index + 1).trim();
     const fallbackCustomerId = surveyNo ? ("SURVEY-" + surveyNo) : ("ROW-" + (index + 1));
     const customerId = String(row[customerIdKey] || fallbackCustomerId).trim();
     const normalizedStoreName = String(row[storeNameKey] || row.__sheet_name || "").trim();
 
     return {
       ...row,
+      row_id: rowId || String(index + 1),
       survey_no: surveyNo,
       customer_id: customerId || fallbackCustomerId,
       store_name: normalizedStoreName,
@@ -737,46 +746,73 @@ function replaceBatch(batchId, nextBatch) {
   state.history = state.history.map((batch) => (batch.id === batchId ? nextBatch : batch));
 }
 
+function chunkRows(items, chunkSize) {
+  const chunks = [];
+  for (let index = 0; index < items.length; index += chunkSize) {
+    chunks.push(items.slice(index, index + chunkSize));
+  }
+  return chunks;
+}
+
 async function analyzeRowsWithAI(rows, settings) {
   if (!settings.apiKey) {
     throw new Error("OpenAI API 키를 먼저 입력해 주세요.");
   }
 
-  const response = await fetch("/api/analyze", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      rows,
-      promptVersion: settings.promptVersion,
-      apiKey: settings.apiKey
-    })
-  });
+  const chunks = chunkRows(rows, AI_CHUNK_SIZE);
+  const results = [];
 
-  let payload = null;
-  try {
-    payload = await response.json();
-  } catch (error) {
-    payload = null;
+  for (let index = 0; index < chunks.length; index += 1) {
+    const chunk = chunks[index];
+    setUploadStatus(
+      1,
+      rows.length,
+      "분석중",
+      `OpenAI 분석 중입니다. ${index + 1}/${chunks.length} 묶음 처리 중 (${results.length}/${rows.length}건 완료)`
+    );
+
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        rows: chunk,
+        promptVersion: settings.promptVersion,
+        apiKey: settings.apiKey
+      })
+    });
+
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      payload = null;
+    }
+
+    if (!response.ok) {
+      const message = payload?.error || "AI 분석 요청 중 오류가 발생했습니다.";
+      throw new Error(`${index + 1}/${chunks.length} 묶음 실패: ${message}`);
+    }
+
+    if (!payload?.results || !Array.isArray(payload.results)) {
+      throw new Error(`${index + 1}/${chunks.length} 묶음의 AI 분석 결과 형식이 올바르지 않습니다.`);
+    }
+
+    if (payload.results.length !== chunk.length) {
+      throw new Error(`${index + 1}/${chunks.length} 묶음의 AI 분석 결과 행 수가 입력 행 수와 일치하지 않습니다.`);
+    }
+
+    results.push(...payload.results);
   }
 
-  if (!response.ok) {
-    const message = payload?.error || "AI 분석 요청 중 오류가 발생했습니다.";
-    throw new Error(message);
-  }
-
-  if (!payload?.results || !Array.isArray(payload.results)) {
-    throw new Error("AI 분석 결과 형식이 올바르지 않습니다.");
-  }
-
-  const resultMap = new Map(payload.results.map((item) => [String(item.survey_no), item]));
+  const resultMap = new Map(results.map((item) => [String(item.row_id), item]));
 
   const analyzed = rows.map((row) => {
-    const surveyNo = String(row.survey_no);
-    const result = resultMap.get(surveyNo);
+    const rowId = String(row.row_id);
+    const result = resultMap.get(rowId);
     if (!result) {
-      throw new Error(`설문번호 ${surveyNo}의 분석 결과가 누락되었습니다.`);
+      throw new Error(`행 ID ${rowId}의 분석 결과가 누락되었습니다.`);
     }
 
     const comment = String(row.comment_text || "").replace(/\s+/g, " ").trim();
