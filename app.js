@@ -12,6 +12,7 @@ const REQUIRED_COLUMNS = [
 ];
 
 const AI_CHUNK_SIZE = 20;
+const CLIENT_CHUNK_RETRIES = 2;
 
 const COLUMN_ALIASES = {
   survey_no: ["survey_no", "\uC124\uBB38\uBC88\uD638"],
