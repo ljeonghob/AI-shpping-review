@@ -95,6 +95,8 @@ const SYSTEM_PROMPT = `
   "의미 없는 반복 응답"
 - 의미가 읽히는 불만/칭찬 응답은 제외하지 말고 점수화합니다.
 - 불만 응답은 욕설, 비방, 혐오 또는 개인정보 노출이 아닌 한 제외하지 않습니다.
+- 오타가 있어도 의미가 읽히면 우선 제외하지 않고 점수화합니다.
+- 단, 의미 해석이 어려울 정도로 오타/비문이 심하면 "의미 없는 반복 응답"으로 제외할 수 있습니다.
 
 [점수화 기준]
 1) 구체성 (0~40점)
@@ -114,11 +116,14 @@ const SYSTEM_PROMPT = `
 - 11~15점: 문장은 자연스럽지만 평이하거나 구체성이 약함
 - 6~10점: 짧고 상투적인 표현 중심
 - 0~5점: 단어 나열, 기계적 표현, 무성의한 응답
+- 오타/띄어쓰기 오류/비문이 많을수록 진정성 점수를 낮춥니다.
 
 [점수 상한 규칙]
 - 일반 칭찬만 나열한 응답은 최대 55점입니다.
 - 구체적 장면, 이유, 행동, 결과가 없으면 최대 65점입니다.
 - 운영 개선 또는 우수사례로 활용할 시사점이 없으면 최대 75점입니다.
+- 오타가 3개 이상이면 진정성은 최대 12점, 총점은 최대 70점입니다.
+- 오타가 6개 이상이거나 핵심 단어 오타로 일부 의미 해석이 어렵다면 진정성은 최대 8점, 총점은 최대 55점입니다.
 - "직원 응대가 좋았다", "직원이 세심했다", "안내를 잘했다" 정도의 표현만 있고 구체적인 직원 행동이나 상황 설명이 없으면 최대 65점입니다.
 - "만족스러운 쇼핑이었다", "좋은 쇼핑이었다"처럼 결과 감상만 있으면 최대 60점입니다.
 - 상품, 행사, 응대가 언급되어도 어떤 상품/행사인지, 어떤 응대 행동인지 설명이 없으면 최대 65점입니다.
@@ -126,6 +131,7 @@ const SYSTEM_PROMPT = `
 - 90점 이상은 구체적 상황, 직원/매장 행동 또는 문제, 고객이 느낀 결과, 운영 활용성이 모두 있어야 합니다.
 - 예: "응대가 친절합니다. 매장도 깨끗하고요. 상품 구성도 좋습니다."는 일반 칭찬 나열이므로 55점 초과 금지입니다.
 - 예: "식품관 계산대 대기줄이 길었는데 직원이 추가 계산대로 바로 안내해줘서 대기 시간이 줄었습니다."는 장소, 문제, 행동, 결과가 있어 고득점 가능입니다.
+- 예: "주차장도 여유가 맀었고, 매장 동선도 딸잘 안내되어 찾아가기 쉬웠고, 작원들도 친절하게 응개해둬서 모든면에서 만족했습니다."는 의미는 읽히지만 오타가 많으므로 진정성과 총점 상한을 낮게 적용합니다.
 
 [불만 응답 평가 원칙]
 - 불만이라는 이유만으로 낮은 점수를 주지 않습니다.
@@ -235,6 +241,19 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function formatErrorMessage(errorLike) {
+  if (!errorLike) return "";
+  if (typeof errorLike === "string") return errorLike;
+  if (typeof errorLike.message === "string") return errorLike.message;
+  if (typeof errorLike.error === "string") return errorLike.error;
+  if (typeof errorLike.error?.message === "string") return errorLike.error.message;
+  try {
+    return JSON.stringify(errorLike);
+  } catch (error) {
+    return String(errorLike);
+  }
+}
+
 async function analyzeChunk(chunk, apiKey) {
   const schema = {
     type: "object",
@@ -320,9 +339,15 @@ ${JSON.stringify(chunk)}
     })
   });
 
-  const payload = await response.json();
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    payload = null;
+  }
+
   if (!response.ok) {
-    throw new Error(payload?.error?.message || "OpenAI API 호출에 실패했습니다.");
+    throw new Error(formatErrorMessage(payload?.error || payload) || "OpenAI API 호출에 실패했습니다.");
   }
 
   const outputText = extractOutputText(payload);
