@@ -747,12 +747,77 @@ function replaceBatch(batchId, nextBatch) {
   state.history = state.history.map((batch) => (batch.id === batchId ? nextBatch : batch));
 }
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function formatErrorMessage(errorLike) {
+  if (!errorLike) return "";
+  if (typeof errorLike === "string") return errorLike;
+  if (typeof errorLike.message === "string") return errorLike.message;
+  if (typeof errorLike.error === "string") return errorLike.error;
+  if (typeof errorLike.error?.message === "string") return errorLike.error.message;
+  try {
+    return JSON.stringify(errorLike);
+  } catch (error) {
+    return String(errorLike);
+  }
+}
+
 function chunkRows(items, chunkSize) {
   const chunks = [];
   for (let index = 0; index < items.length; index += chunkSize) {
     chunks.push(items.slice(index, index + chunkSize));
   }
   return chunks;
+}
+
+async function requestAnalyzeChunk(chunk, settings, chunkLabel) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= CLIENT_CHUNK_RETRIES; attempt += 1) {
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          rows: chunk,
+          promptVersion: settings.promptVersion,
+          apiKey: settings.apiKey
+        })
+      });
+
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch (error) {
+        payload = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(formatErrorMessage(payload?.error || payload) || "AI 분석 요청 중 오류가 발생했습니다.");
+      }
+
+      if (!payload?.results || !Array.isArray(payload.results)) {
+        throw new Error("AI 분석 결과 형식이 올바르지 않습니다.");
+      }
+
+      if (payload.results.length !== chunk.length) {
+        throw new Error("AI 분석 결과 행 수가 입력 행 수와 일치하지 않습니다.");
+      }
+
+      return payload.results;
+    } catch (error) {
+      lastError = error;
+      if (attempt < CLIENT_CHUNK_RETRIES) {
+        await wait(900 * (attempt + 1));
+      }
+    }
+  }
+
+  throw new Error(`${chunkLabel} 묶음 실패: ${formatErrorMessage(lastError) || "AI 분석 요청 중 오류가 발생했습니다."}`);
 }
 
 async function analyzeRowsWithAI(rows, settings) {
@@ -772,39 +837,8 @@ async function analyzeRowsWithAI(rows, settings) {
       `OpenAI 분석 중입니다. ${index + 1}/${chunks.length} 묶음 처리 중 (${results.length}/${rows.length}건 완료)`
     );
 
-    const response = await fetch("/api/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        rows: chunk,
-        promptVersion: settings.promptVersion,
-        apiKey: settings.apiKey
-      })
-    });
-
-    let payload = null;
-    try {
-      payload = await response.json();
-    } catch (error) {
-      payload = null;
-    }
-
-    if (!response.ok) {
-      const message = payload?.error || "AI 분석 요청 중 오류가 발생했습니다.";
-      throw new Error(`${index + 1}/${chunks.length} 묶음 실패: ${message}`);
-    }
-
-    if (!payload?.results || !Array.isArray(payload.results)) {
-      throw new Error(`${index + 1}/${chunks.length} 묶음의 AI 분석 결과 형식이 올바르지 않습니다.`);
-    }
-
-    if (payload.results.length !== chunk.length) {
-      throw new Error(`${index + 1}/${chunks.length} 묶음의 AI 분석 결과 행 수가 입력 행 수와 일치하지 않습니다.`);
-    }
-
-    results.push(...payload.results);
+    const chunkResults = await requestAnalyzeChunk(chunk, settings, `${index + 1}/${chunks.length}`);
+    results.push(...chunkResults);
   }
 
   const resultMap = new Map(results.map((item) => [String(item.row_id), item]));
