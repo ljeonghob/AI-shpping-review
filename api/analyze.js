@@ -415,7 +415,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const rows = Array.isArray(req.body?.rows) ? req.body.rows : [];
-    const apiKey = typeof req.body?.apiKey === "string" ? req.body.apiKey.trim() : "";
+    const apiKey = typeof process.env.OPENAI_API_KEY === "string" ? process.env.OPENAI_API_KEY.trim() : "";
 
     if (!rows.length) {
       return res.status(400).json({ error: "분석할 rows 데이터가 없습니다." });
@@ -423,6 +423,43 @@ module.exports = async function handler(req, res) {
 
     if (!apiKey) {
       return res.status(400).json({ error: "OpenAI API 키를 입력해 주세요." });
+    }
+
+    const chunks = chunkArray(rows, CHUNK_SIZE);
+    const results = [];
+
+    for (const chunk of chunks) {
+      const analyzed = await analyzeChunkReliably(chunk, apiKey);
+      results.push(...analyzed);
+    }
+
+    return res.status(200).json({
+      results,
+      model: MODEL,
+      count: results.length
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message || "AI 분석 중 서버 오류가 발생했습니다."
+    });
+  }
+};
+
+module.exports = async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "POST 요청만 허용됩니다." });
+  }
+
+  try {
+    const rows = Array.isArray(req.body?.rows) ? req.body.rows : [];
+    const apiKey = typeof process.env.OPENAI_API_KEY === "string" ? process.env.OPENAI_API_KEY.trim() : "";
+
+    if (!rows.length) {
+      return res.status(400).json({ error: "분석할 rows 데이터가 없습니다." });
+    }
+
+    if (!apiKey) {
+      return res.status(500).json({ error: "Vercel 환경변수 OPENAI_API_KEY가 설정되지 않았습니다." });
     }
 
     const chunks = chunkArray(rows, CHUNK_SIZE);
