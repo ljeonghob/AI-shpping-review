@@ -1,6 +1,5 @@
 const STORAGE_KEY = "survey-dashboard-history-v1";
 const ACCESS_SESSION_KEY = "survey-dashboard-auth-v1";
-const API_KEY_SESSION_KEY = "survey-dashboard-api-key-v1";
 const SHARED_ACCESS_CODE = "LOTTE-REVIEW-2026";
 
 const REQUIRED_COLUMNS = [
@@ -101,7 +100,6 @@ const state = {
   sortFilter: "score",
   analysisMode: "ai",
   captchaValue: "",
-  apiKey: "",
   distributionPages: {
     all: 1,
     selected: 1
@@ -119,26 +117,6 @@ function loadHistory() {
 
 function saveHistory() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.history));
-}
-
-function loadStoredApiKey() {
-  try {
-    return sessionStorage.getItem(API_KEY_SESSION_KEY) || "";
-  } catch (error) {
-    return "";
-  }
-}
-
-function saveStoredApiKey(value) {
-  try {
-    if (value) {
-      sessionStorage.setItem(API_KEY_SESSION_KEY, value);
-    } else {
-      sessionStorage.removeItem(API_KEY_SESSION_KEY);
-    }
-  } catch (error) {
-    return;
-  }
 }
 
 function isAuthenticated() {
@@ -249,12 +227,6 @@ function logout() {
   setAuthenticated(false);
   updateAuthUI();
   generateCaptchaValue();
-}
-
-function syncApiKeyInput() {
-  const input = document.getElementById("apiKeyInput");
-  if (!input) return;
-  input.value = state.apiKey;
 }
 
 function escapeHtml(value) {
@@ -784,8 +756,7 @@ async function requestAnalyzeChunk(chunk, settings, chunkLabel) {
         },
         body: JSON.stringify({
           rows: chunk,
-          promptVersion: settings.promptVersion,
-          apiKey: settings.apiKey
+          promptVersion: settings.promptVersion
         })
       });
 
@@ -1552,10 +1523,292 @@ function bindEvents() {
   });
 }
 
+async function requestAnalyzeChunk(chunk, settings, chunkLabel) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= CLIENT_CHUNK_RETRIES; attempt += 1) {
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          rows: chunk,
+          promptVersion: settings.promptVersion
+        })
+      });
+
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch (error) {
+        payload = null;
+      }
+
+      if (!response.ok) {
+        throw new Error(formatErrorMessage(payload?.error || payload) || "AI 분석 요청 중 오류가 발생했습니다.");
+      }
+
+      if (!payload?.results || !Array.isArray(payload.results)) {
+        throw new Error("AI 분석 결과 형식이 올바르지 않습니다.");
+      }
+
+      return payload.results;
+    } catch (error) {
+      lastError = error;
+      if (attempt < CLIENT_CHUNK_RETRIES) {
+        await wait(900 * (attempt + 1));
+      }
+    }
+  }
+
+  throw new Error(`${chunkLabel} 묶음 실패: ${formatErrorMessage(lastError) || "AI 분석 요청 중 오류가 발생했습니다."}`);
+}
+
+async function analyzeRowsWithAI(rows, settings) {
+  const chunks = chunkRows(rows, AI_CHUNK_SIZE);
+  const results = [];
+
+  for (let index = 0; index < chunks.length; index += 1) {
+    const chunk = chunks[index];
+    setUploadStatus(
+      1,
+      rows.length,
+      "분석중",
+      `OpenAI 분석 중입니다. ${index + 1}/${chunks.length} 묶음 처리 중 (${results.length}/${rows.length}건 완료)`
+    );
+
+    const chunkResults = await requestAnalyzeChunk(chunk, settings, `${index + 1}/${chunks.length}`);
+    results.push(...chunkResults);
+  }
+
+  const resultMap = new Map(results.map((item) => [String(item.row_id), item]));
+
+  const analyzed = rows.map((row) => {
+    const rowId = String(row.row_id);
+    const result = resultMap.get(rowId);
+    if (!result) {
+      throw new Error(`행 ID ${rowId}의 분석 결과가 누락되었습니다.`);
+    }
+
+    const comment = String(row.comment_text || "").replace(/\s+/g, " ").trim();
+    return {
+      ...row,
+      survey_date: toISODate(row.survey_date),
+      comment_text: comment,
+      ai_total_score: Number(result.ai_total_score || 0),
+      ai_score_specificity: Number(result.ai_score_specificity || 0),
+      ai_score_usability: Number(result.ai_score_usability || 0),
+      ai_score_authenticity: Number(result.ai_score_authenticity || 0),
+      is_excluded: Boolean(result.is_excluded),
+      exclusion_reason: result.exclusion_reason || "",
+      comment_length: comment.length,
+      selection_reason: ""
+    };
+  });
+
+  const excluded = analyzed.filter((item) => item.is_excluded);
+  const passed = analyzed.filter((item) => !item.is_excluded).sort(compareCandidates);
+  const candidateTotal = settings.finalCount + settings.reserveCount;
+  const candidates = passed.slice(0, candidateTotal).map((item, index) => ({
+    ...item,
+    rank: index + 1,
+    selection_group: index < settings.finalCount ? "final" : "reserve",
+    selection_reason: buildSelectionReason(item)
+  }));
+
+  return {
+    analyzed,
+    excluded,
+    passed,
+    candidates
+  };
+}
+
+async function processCurrentUpload() {
+  if (!isAuthenticated()) {
+    setUploadStatus(0, 0, "대기", "먼저 공용 인증코드로 로그인해 주세요.");
+    updateAuthUI();
+    return;
+  }
+
+  if (!state.pendingUpload) {
+    setUploadStatus(0, 0, "대기", "먼저 CSV 또는 엑셀 파일을 업로드해 주세요.");
+    return;
+  }
+
+  const finalCount = Number(document.getElementById("finalCountInput").value || 30);
+  const reserveCount = Number(document.getElementById("reserveCountInput").value || 30);
+  const promptVersion = document.getElementById("promptVersionInput").value.trim() || "review-score-v1";
+
+  setUploadStatus(
+    1,
+    state.pendingUpload.rows.length,
+    "분석중",
+    `OpenAI로 점수화와 후보 추출을 진행하고 있습니다. ${buildEstimateMessage(state.pendingUpload.rows.length)}`
+  );
+
+  const processingBatch = createProcessingBatch(
+    state.pendingUpload.fileName,
+    state.pendingUpload.rows.length,
+    { finalCount, reserveCount, promptVersion }
+  );
+  state.history.unshift(processingBatch);
+  saveHistory();
+  renderHistory();
+
+  try {
+    const analysis = await analyzeRowsWithAI(state.pendingUpload.rows, {
+      finalCount,
+      reserveCount,
+      promptVersion
+    });
+
+    const batch = createBatchFromAnalysis(
+      state.pendingUpload.rows,
+      state.pendingUpload.fileName,
+      { finalCount, reserveCount, promptVersion },
+      analysis,
+      "ai"
+    );
+    batch.id = processingBatch.id;
+
+    replaceBatch(processingBatch.id, batch);
+    state.activeBatchId = batch.id;
+    state.distributionPages.all = 1;
+    state.distributionPages.selected = 1;
+    saveHistory();
+    renderHistory();
+    renderDashboard();
+    setUploadStatus(1, batch.rowCount, "완료", `${batch.fileName} AI 분석이 완료되었습니다. 처리 이력에서 결과 보기를 눌러 확인해 주세요.`);
+  } catch (error) {
+    replaceBatch(processingBatch.id, {
+      ...processingBatch,
+      status: "오류",
+      monthlyLabel: "오류",
+      errorMessage: error.message || "AI 분석 중 오류가 발생했습니다."
+    });
+    saveHistory();
+    renderHistory();
+    setUploadStatus(1, state.pendingUpload.rows.length, "오류", error.message || "AI 분석 중 오류가 발생했습니다.");
+  }
+}
+
+function bindEvents() {
+  document.getElementById("loginSubmitBtn").addEventListener("click", attemptLogin);
+  document.getElementById("refreshCaptchaBtn").addEventListener("click", generateCaptchaValue);
+  document.getElementById("logoutBtn").addEventListener("click", logout);
+  document.getElementById("captchaInput").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      attemptLogin();
+    }
+  });
+  document.getElementById("accessCodeInput").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      attemptLogin();
+    }
+  });
+
+  document.getElementById("fileSelectBtn").addEventListener("click", () => {
+    document.getElementById("fileInput").click();
+  });
+
+  document.getElementById("fileInput").addEventListener("change", (event) => {
+    handleFileSelection(event.target.files?.[0]);
+  });
+
+  document.getElementById("dropzone").addEventListener("dragover", (event) => {
+    event.preventDefault();
+  });
+
+  document.getElementById("dropzone").addEventListener("drop", (event) => {
+    event.preventDefault();
+    handleFileSelection(event.dataTransfer?.files?.[0]);
+  });
+
+  document.getElementById("sampleDownloadBtn").addEventListener("click", downloadSampleCsv);
+  document.getElementById("processBtn").addEventListener("click", processCurrentUpload);
+  document.getElementById("resetCurrentBtn").addEventListener("click", resetPendingUpload);
+  document.getElementById("clearHistoryBtn").addEventListener("click", () => {
+    state.history = [];
+    state.activeBatchId = null;
+    saveHistory();
+    renderHistory();
+    renderDashboard();
+  });
+
+  document.getElementById("historyList").addEventListener("click", (event) => {
+    const target = event.target.closest("button[data-action]");
+    if (!target) return;
+    const id = target.dataset.id;
+    if (target.dataset.action === "open") {
+      state.activeBatchId = id;
+      state.distributionPages.all = 1;
+      state.distributionPages.selected = 1;
+      document.getElementById("startDateInput").value = "";
+      document.getElementById("endDateInput").value = "";
+      renderDashboard();
+      document.getElementById("dashboardSection").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (target.dataset.action === "delete") {
+      state.history = state.history.filter((batch) => batch.id !== id);
+      if (state.activeBatchId === id) {
+        state.activeBatchId = state.history[0]?.id || null;
+      }
+      saveHistory();
+      renderHistory();
+      renderDashboard();
+    }
+  });
+
+  document.getElementById("applyDateFilterBtn").addEventListener("click", () => {
+    renderDashboard();
+  });
+
+  document.getElementById("storeFilterSelect").addEventListener("change", (event) => {
+    state.storeFilter = event.target.value;
+    renderDashboard();
+  });
+
+  document.getElementById("sortFilterSelect").addEventListener("change", (event) => {
+    state.sortFilter = event.target.value;
+    renderDashboard();
+  });
+
+  document.getElementById("downloadCandidatesBtn").addEventListener("click", downloadCandidates);
+  document.getElementById("downloadAllScoresBtn").addEventListener("click", downloadAllScores);
+
+  document.getElementById("candidateTableBody").addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-action='detail']");
+    if (!button) return;
+    openDetailModal(button.dataset.rowId);
+  });
+
+  document.body.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-page-type]");
+    if (!button) return;
+    const pageType = button.dataset.pageType;
+    const move = Number(button.dataset.pageMove);
+    const batch = getActiveBatch();
+    if (!batch) return;
+    const view = getFilteredBatchData(batch);
+    const source = pageType === "all" ? groupByStore(view.scoped) : groupByStore(view.candidates);
+    const maxPage = Math.max(1, Math.ceil(source.length / 10));
+    state.distributionPages[pageType] = clamp(state.distributionPages[pageType] + move, 1, maxPage);
+    renderDashboard();
+  });
+
+  document.getElementById("closeDetailModalBtn").addEventListener("click", closeDetailModal);
+  document.getElementById("detailModal").addEventListener("click", (event) => {
+    if (event.target.id === "detailModal") {
+      closeDetailModal();
+    }
+  });
+}
+
 function init() {
-  state.apiKey = loadStoredApiKey();
   bindEvents();
-  syncApiKeyInput();
   generateCaptchaValue();
   updateAuthUI();
   renderHistory();
@@ -1565,6 +1818,24 @@ function init() {
   }
   renderDashboard();
   resetPendingUpload();
+
+  const apiInput = document.getElementById("apiKeyInput");
+  const clearApiButton = document.getElementById("clearApiKeyBtn");
+  const apiSection = apiInput?.closest(".field.full");
+  if (clearApiButton) {
+    clearApiButton.remove();
+  }
+  if (apiInput) {
+    apiInput.remove();
+  }
+  if (apiSection) {
+    const title = apiSection.querySelector("span");
+    const helper = apiSection.querySelector(".field-helper");
+    if (title) title.textContent = "서버 연동 상태";
+    if (helper) {
+      helper.textContent = "OpenAI API 키는 Vercel 환경변수에만 저장되며, 이 화면에서는 입력하거나 노출하지 않습니다.";
+    }
+  }
 }
 
 init();
